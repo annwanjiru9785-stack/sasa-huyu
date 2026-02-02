@@ -28,6 +28,7 @@ import RiskDisclaimer from '../components/risk-disclaimer';
 import RiskCalculatorButton from '../components/risk-calculator-button/risk-calculator-button';
 import BotBuilder from '../pages/bot-builder';
 import Main from '../pages/main';
+import OverUnder from '../pages/OverUnder'; // <--- NEW TAB IMPORTED
 import './app.scss';
 import 'react-toastify/dist/ReactToastify.css';
 import '../components/bot-notification/bot-notification.scss';
@@ -82,7 +83,6 @@ const AppContent = observer(() => {
         html?.setAttribute('dir', current_language.toLowerCase() === 'ar' ? 'rtl' : 'ltr');
     }, [current_language, html]);
 
-    // Check for EU client error early
     const is_eu_country = client?.is_eu_country;
     const clients_logged_out_country_code = client?.clients_country;
     const clients_logged_in_country_code = client?.account_settings?.country_code;
@@ -92,13 +92,11 @@ const AppContent = observer(() => {
         const bot_restricted_countries = BOT_RESTRICTED_COUNTRIES_LIST();
 
         if (!client.is_logged_in) {
-            // For logged out users
             if (clients_logged_out_country_code) {
                 const is_restricted = !!bot_restricted_countries[clients_logged_out_country_code];
                 setIsEuErrorLoading(client.is_eu_country && is_restricted);
             }
         } else {
-            // For logged in users
             if (clients_logged_in_country_code) {
                 const is_restricted = !!bot_restricted_countries[clients_logged_in_country_code];
                 setIsEuErrorLoading(is_restricted);
@@ -126,9 +124,6 @@ const AppContent = observer(() => {
     }, []);
 
     React.useEffect(() => {
-        // Check if api is initialized and then subscribe to the api messages
-        // Also we should only subscribe to the messages once user is logged in
-        // And is not already subscribed to the messages
         if (!is_subscribed_to_msg_listener.current && client.is_logged_in && is_api_initialized && api_base?.api) {
             is_subscribed_to_msg_listener.current = true;
             msg_listener.current = api_base.api.onMessage()?.subscribe(handleMessage);
@@ -143,7 +138,6 @@ const AppContent = observer(() => {
 
     React.useEffect(() => {
         showDigitalOptionsMaltainvestError(client, common);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [client.is_options_blocked, client.account_settings?.country_code, client.clients_country]);
 
     const init = () => {
@@ -157,7 +151,6 @@ const AppContent = observer(() => {
 
     const changeActiveSymbolLoadingState = () => {
         init();
-
         const retrieveActiveSymbols = () => {
             const { active_symbols } = ApiHelpers.instance;
             active_symbols.retrieveActiveSymbols(true).then(() => {
@@ -168,8 +161,6 @@ const AppContent = observer(() => {
         if (ApiHelpers?.instance?.active_symbols) {
             retrieveActiveSymbols();
         } else {
-            // This is a workaround to fix the issue where the active symbols are not loaded immediately
-            // when the API is initialized. Should be replaced with RxJS pubsub
             const intervalId = setInterval(() => {
                 if (ApiHelpers?.instance?.active_symbols) {
                     clearInterval(intervalId);
@@ -187,15 +178,12 @@ const AppContent = observer(() => {
                 changeActiveSymbolLoadingState();
             }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [is_api_initialized]);
 
-    // use is_landing_company_loaded to know got details of accounts to identify should show an error or not
     React.useEffect(() => {
         if (client.is_logged_in && client.is_landing_company_loaded && is_api_initialized) {
             changeActiveSymbolLoadingState();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [client.is_landing_company_loaded, is_api_initialized, client.loginid]);
 
     useEffect(() => {
@@ -215,8 +203,15 @@ const AppContent = observer(() => {
                 <BlocklyLoading />
                 <div className='bot-dashboard bot' data-testid='dt_bot_dashboard'>
                     <Audio />
-                    <Main />
-                    <BotBuilder />
+                    {/* Only show OverUnder when its tab is active in store */}
+                    {store.common.active_tab === 'over_under' ? (
+                        <OverUnder />
+                    ) : (
+                        <>
+                            <Main />
+                            <BotBuilder />
+                        </>
+                    )}
                     <BotStopped />
                     <TransactionDetailsModal />
                     <ToastContainer limit={3} draggable={false} />
