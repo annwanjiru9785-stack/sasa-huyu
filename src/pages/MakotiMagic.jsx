@@ -34,37 +34,24 @@ const MakotiMagic = () => {
                             ws.send(JSON.stringify({ ticks: '1HZ100V', subscribe: 1 }));
                         }
 
-                        // THE SHOTGUN OVERLAP
+                        // THE 10MS INJECTION
                         if (active && res.msg_type === 'tick' && !isWaiting) {
-                            const digit = parseInt(res.tick.quote.toString().slice(-1));
-                            self.postMessage({ type: 'TICK', data: digit });
+                            const rawQuote = res.tick.quote.toString();
+                            const digit = rawQuote.charAt(rawQuote.length - 1);
                             
-                            isWaiting = true; // Lock until burst is processed
+                            self.postMessage({ type: 'TICK', data: digit });
+                            isWaiting = true; 
 
-                            const trade_packet = JSON.stringify({
-                                buy: 1,
-                                price: payload.stake,
-                                parameters: { 
-                                    amount: payload.stake, 
-                                    basis: 'stake', 
-                                    contract_type: 'DIGITMATCH', 
-                                    currency: 'USD', 
-                                    symbol: '1HZ100V', 
-                                    duration: 1, 
-                                    duration_unit: 't', 
-                                    barrier: digit 
-                                },
-                                subscribe: 1
-                            });
+                            // PRE-BUILT RAW STRING (Zero JSON.stringify overhead)
+                            const fastMatch = '{"buy":1,"price":' + payload.stake + ',"parameters":{"amount":' + payload.stake + ',"basis":"stake","contract_type":"DIGITMATCH","currency":"USD","duration":1,"duration_unit":"t","symbol":"1HZ100V","barrier":' + digit + '},"subscribe":1}';
 
-                            // BURST FIRE: Sending 3 identical requests to overlap the gate
-                            ws.send(trade_packet);
-                            ws.send(trade_packet);
-                            ws.send(trade_packet);
+                            // TRIPLE-TAP INJECTION
+                            ws.send(fastMatch);
+                            ws.send(fastMatch);
+                            ws.send(fastMatch);
                         }
 
                         if (res.msg_type === 'proposal_open_contract' && res.proposal_open_contract.is_sold) {
-                            // Only release the lock when the contract is sold
                             isWaiting = false; 
                             self.postMessage({ type: 'RESULT', data: res.proposal_open_contract });
                         }
@@ -91,7 +78,7 @@ const MakotiMagic = () => {
                     target: data.barrier,
                     exit: data.exit_tick_display_value?.slice(-1) || '?',
                     profit: data.profit
-                }, ...prev].slice(0, 10));
+                }, ...prev].slice(0, 8));
                 setTotalPL(v => v + data.profit);
             }
         };
@@ -116,24 +103,23 @@ const MakotiMagic = () => {
     return (
         <div style={ui.page}>
             <div style={ui.card}>
-                <h1 style={ui.title}>SHOTGUN <span style={{color:'#0f0'}}>V20</span></h1>
+                <h2 style={ui.title}>ULTRA <span style={{color:'#0f0'}}>INJECTOR V21</span></h2>
                 
                 <div style={ui.monitor}>
-                    <div style={{color:'#555', fontSize:'10px'}}>LIVE STREAM</div>
-                    <div style={{fontSize:'48px', color:'#0f0', fontWeight:'bold'}}>{liveDigit}</div>
+                    <div style={{fontSize:'60px', color:'#0f0', fontWeight:'900'}}>{liveDigit}</div>
+                    <div style={{fontSize:'10px', color:'#444'}}>TICK STREAM ACTIVE</div>
                 </div>
 
                 <div style={ui.statsRow}>
-                    <div style={{color: status === 'CONNECTED' ? '#0f0' : '#f44', fontWeight:'bold'}}>{status}</div>
-                    <div style={{fontSize: '32px', color: total_pl >= 0 ? '#0f0' : '#f44'}}>${total_pl.toFixed(2)}</div>
+                    <div style={{color: status === 'CONNECTED' ? '#0f0' : '#f44'}}>{status}</div>
+                    <div style={{fontSize: '30px', color: total_pl >= 0 ? '#0f0' : '#f44'}}>${total_pl.toFixed(2)}</div>
                 </div>
 
                 <div style={ui.form}>
                     <input type="password" value={token} onChange={e => setToken(e.target.value)} style={ui.input} placeholder="API TOKEN" />
                     <input type="number" value={stake} onChange={e => setStake(e.target.value)} style={ui.input} placeholder="STAKE ($)" />
-                    
                     <button onClick={handleToggle} style={is_hunting ? ui.btnStop : ui.btnStart}>
-                        {is_hunting ? 'ABORT' : 'FIRE BURST'}
+                        {is_hunting ? 'STOP ENGINE' : 'ACTIVATE OVERLAP'}
                     </button>
                 </div>
 
@@ -141,8 +127,8 @@ const MakotiMagic = () => {
                     {results.map((r) => (
                         <div key={r.id} style={ui.tr}>
                             <span>TARGET: <b>{r.target}</b></span>
-                            <span>EXIT: <b style={{color: r.target === r.exit ? '#0f0' : '#f44'}}>{r.exit}</b></span>
-                            <span style={{color: r.profit >= 0 ? '#0f0' : '#f44', fontWeight:'bold'}}>{r.profit > 0 ? 'MATCH' : 'MISS'}</span>
+                            <span style={{color: r.target === r.exit ? '#0f0' : '#f44'}}>EXIT: <b>{r.exit}</b></span>
+                            <span>{r.profit > 0 ? '🏆' : '❌'}</span>
                         </div>
                     ))}
                 </div>
@@ -153,16 +139,16 @@ const MakotiMagic = () => {
 
 const ui = {
     page: { background: '#000', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: 'monospace' },
-    card: { width: '450px', background: '#080808', padding: '30px', borderRadius: '15px', border: '1px solid #222', textAlign: 'center' },
-    title: { fontSize: '24px', color: '#fff', marginBottom: '10px' },
-    monitor: { background: '#000', padding: '15px', borderRadius: '10px', border: '1px solid #111', marginBottom: '20px' },
-    statsRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' },
-    form: { display: 'flex', flexDirection: 'column', gap: '15px' },
-    input: { width: '100%', padding: '15px', background: '#000', border: '1px solid #333', color: '#0f0', fontSize: '18px', boxSizing: 'border-box' },
-    btnStart: { padding: '15px', background: '#0f0', color: '#000', border: 'none', borderRadius: '5px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' },
-    btnStop: { padding: '15px', background: '#400', color: '#f44', border: 'none', borderRadius: '5px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' },
-    table: { marginTop: '25px', maxHeight: '200px', overflowY: 'auto' },
-    tr: { display: 'flex', justifyContent: 'space-between', padding: '10px', background: '#111', marginBottom: '5px', borderRadius: '5px', color: '#fff', fontSize: '14px' }
+    card: { width: '400px', background: '#080808', padding: '40px', borderRadius: '20px', border: '2px solid #111', textAlign: 'center' },
+    title: { fontSize: '22px', color: '#fff', marginBottom: '15px' },
+    monitor: { background: '#000', padding: '20px', borderRadius: '15px', border: '1px solid #1a1a1a', marginBottom: '25px' },
+    statsRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
+    form: { display: 'flex', flexDirection: 'column', gap: '10px' },
+    input: { width: '100%', padding: '15px', background: '#000', border: '1px solid #222', color: '#0f0', fontSize: '18px', boxSizing: 'border-box' },
+    btnStart: { padding: '18px', background: '#0f0', color: '#000', border: 'none', fontWeight: '900', fontSize: '18px', cursor: 'pointer' },
+    btnStop: { padding: '18px', background: '#300', color: '#f44', border: 'none', fontWeight: '900', fontSize: '18px', cursor: 'pointer' },
+    table: { marginTop: '20px' },
+    tr: { display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#0c0c0c', marginBottom: '5px', borderRadius: '8px', borderLeft: '4px solid #1a1a1a', color: '#eee' }
 };
 
 export default MakotiMagic;
