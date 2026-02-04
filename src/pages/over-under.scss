@@ -87,10 +87,39 @@
             }
         }
 
+        .connection-status {
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: center;
+            min-width: 150px;
+            
+            &.connected {
+                background: rgba(75, 181, 67, 0.2);
+                color: #4bb543;
+                border: 1px solid #4bb543;
+            }
+            
+            &.authorizing {
+                background: rgba(255, 165, 0, 0.2);
+                color: #ffa500;
+                border: 1px solid #ffa500;
+            }
+            
+            &.disconnected {
+                background: rgba(255, 68, 68, 0.2);
+                color: #ff4444;
+                border: 1px solid #ff4444;
+            }
+        }
+
         .button-group {
             display: flex;
             gap: 12px;
             margin-left: auto;
+            width: 100%;
+            flex-wrap: wrap;
 
             button {
                 padding: 12px 24px;
@@ -99,12 +128,18 @@
                 cursor: pointer;
                 transition: all 0.2s;
                 border: none;
+                
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
             }
 
             .btn-primary {
                 background: var(--brand-red-coral);
                 color: white;
-                &:hover { opacity: 0.9; }
+                flex: 1;
+                &:hover:not(:disabled) { opacity: 0.9; }
                 &.running { background: var(--status-danger); animation: pulse 2s infinite; }
             }
 
@@ -112,7 +147,24 @@
                 background: var(--general-main-1);
                 color: var(--text-prominent);
                 border: 1px solid var(--border-normal);
+                flex: 1;
                 &.active { border-color: var(--brand-red-coral); color: var(--brand-red-coral); }
+                &:hover:not(:disabled) { border-color: var(--brand-red-coral); }
+            }
+            
+            .btn-manual {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                flex: 1;
+                &:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
+            }
+            
+            .btn-reconnect {
+                background: var(--general-main-1);
+                color: var(--text-prominent);
+                border: 1px solid var(--border-normal);
+                flex: 1;
+                &:hover:not(:disabled) { border-color: var(--brand-red-coral); color: var(--brand-red-coral); }
             }
         }
     }
