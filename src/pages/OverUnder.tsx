@@ -8,7 +8,7 @@ import './over-under.scss';
 
 const OverUnder = observer(() => {
     const { summary_card, journal, client } = useStore();
-    const { connectionStatus } = useApiBase();
+    const { connectionStatus, isAuthorized } = useApiBase();
     
     const [digitStats, setDigitStats] = useState(Array(10).fill(0));
     const [lastDigit, setLastDigit] = useState<number | null>(null);
@@ -32,30 +32,15 @@ const OverUnder = observer(() => {
         { text: 'Volatility 100 (1s) Index', value: '1HZ100V' },
     ];
 
-    // Effect to force WS reconnection on App ID change
     useEffect(() => {
-        const handleStorageChange = (event: StorageEvent) => {
-            if (event.key === 'current_trading_app_id' && api_base?.api?.connection) {
-                journal.pushMessage({ message: 'App ID changed. Forcing WebSocket reconnection...', type: 'info' });
-                api_base.api.connection.close();
-            }
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, [journal]);
-
-    // Main effect for subscribing to ticks based on connection status and symbol
-    useEffect(() => {
-        const subscribeToTicks = () => {
+        const subscribe = () => {
             journal.pushMessage({ message: `Subscribing to ${selectedSymbol}...`, type: 'info' });
-            // Unsubscribe from any existing stream first
+
             if (ticks_subscription.current) {
                 ticks_subscription.current.unsubscribe();
             }
             api_base.api.send({ forget_all: 'ticks' });
 
-            // Reset stats for the new subscription
             setDigitStats(Array(10).fill(0));
             setLastDigit(null);
 
@@ -84,10 +69,8 @@ const OverUnder = observer(() => {
             api_base.api.send({ ticks: selectedSymbol, subscribe: 1 });
         };
 
-        if (connectionStatus === CONNECTION_STATUS.OPENED && api_base?.api) {
-            subscribeToTicks();
-        } else {
-            journal.pushMessage({ message: 'Waiting for WebSocket connection...', type: 'info' });
+        if (connectionStatus === CONNECTION_STATUS.OPENED && isAuthorized) {
+            subscribe();
         }
 
         return () => {
@@ -98,17 +81,7 @@ const OverUnder = observer(() => {
                 }
             }
         };
-    }, [connectionStatus, selectedSymbol, journal]);
-
-    // Keep-alive for WebSocket
-    useEffect(() => {
-        const keep_alive = setInterval(() => {
-            if (api_base?.api?.connection?.readyState === 1) {
-                api_base.api.send({ ping: 1 });
-            }
-        }, 15000);
-        return () => clearInterval(keep_alive);
-    }, []);
+    }, [connectionStatus, isAuthorized, selectedSymbol, journal]);
 
     const executeMultiTrade = async () => {
         const common_params = {
@@ -162,8 +135,8 @@ const OverUnder = observer(() => {
             <div className="controls-panel">
                  <div className="input-group">
                     <label>Connection</label>
-                    <div className={`connection-status ${connectionStatus === CONNECTION_STATUS.OPENED ? 'connected' : 'disconnected'}`}>
-                        {connectionStatus === CONNECTION_STATUS.OPENED ? 'Connected' : 'Disconnected'}
+                    <div className={`connection-status ${connectionStatus === CONNECTION_STATUS.OPENED && isAuthorized ? 'connected' : 'disconnected'}`}>
+                        {connectionStatus === CONNECTION_STATUS.OPENED && isAuthorized ? 'Connected' : 'Disconnected'}
                     </div>
                 </div>
                 <div className="input-group">
