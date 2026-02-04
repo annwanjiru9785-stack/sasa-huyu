@@ -12,7 +12,7 @@ const STATUS_AUTHORIZED = 'Account Connected';
 const MAX_TICKS = 1000;
 
 const OverUnder = observer(() => {
-    const { journal, client } = useStore();
+    const { journal, client, summary_card } = useStore();
     const ws = useRef<WebSocket | null>(null);
     const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
     const isAuthorized = useRef(false);
@@ -45,7 +45,7 @@ const OverUnder = observer(() => {
 
     const addLog = (msg: string) => {
         console.log(`[OverUnder] ${msg}`);
-        setDebugInfo(prev => [msg, ...prev].slice(0, 10)); // Increased log size
+        setDebugInfo(prev => [msg, ...prev].slice(0, 10));
     };
 
     const subscribeToTicks = (symbol: string) => {
@@ -118,11 +118,43 @@ const OverUnder = observer(() => {
                         }
                     }
 
+                    if (data.msg_type === 'buy') {
+                        if (data.error) {
+                            addLog(`Buy Error: ${data.error.message}`);
+                            journal.pushMessage(data.error.message, 'error');
+                        } else {
+                            const contract_id = data.buy.contract_id;
+                            addLog(`Purchase Successful: ${contract_id}`);
+                            journal.pushMessage(`Purchase Successful: ${contract_id}`, 'success');
+                            
+                            // Subscribe to contract updates to push to summary
+                            ws.current?.send(JSON.stringify({
+                                proposal_open_contract: 1,
+                                contract_id: contract_id,
+                                subscribe: 1
+                            }));
+                        }
+                    }
+
+                    if (data.msg_type === 'proposal_open_contract') {
+                        const contract = data.proposal_open_contract;
+                        // Push contract info to the global summary store
+                        if (summary_card?.onBotContractEvent) {
+                            summary_card.onBotContractEvent(contract);
+                        }
+                        
+                        if (contract.is_sold) {
+                            const profit = contract.profit;
+                            const result = profit >= 0 ? 'WON' : 'LOST';
+                            addLog(`Trade Finished: ${result} (${profit})`);
+                            journal.pushMessage(`Trade Finished: ${result} (${profit})`, profit >= 0 ? 'success' : 'error');
+                        }
+                    }
+
                     if (data.msg_type === 'history') {
                         const prices = data.history.prices;
                         const digits = prices.map((p: string | number) => {
                             const str = p.toString();
-                            // FIX: Use regex to get the very last digit regardless of decimals
                             const match = str.match(/(\d)$/);
                             return match ? parseInt(match[1], 10) : 0;
                         });
@@ -136,7 +168,6 @@ const OverUnder = observer(() => {
 
                     if (data.msg_type === 'tick') {
                         const quote = data.tick.quote.toString();
-                        // FIX: Use regex to get the very last digit
                         const match = quote.match(/(\d)$/);
                         const digit = match ? parseInt(match[1], 10) : 0;
                         
@@ -149,9 +180,7 @@ const OverUnder = observer(() => {
                             return newHistory;
                         });
 
-                        // Check trigger
                         if (isAutoRunning) {
-                            // Using local variable for entryDigit to ensure we use the latest value
                             if (digit === Number(entryDigit)) {
                                 addLog(`Trigger Hit: ${digit}`);
                                 executeMultiTrade();
@@ -159,7 +188,7 @@ const OverUnder = observer(() => {
                         }
                     }
 
-                    if (data.error && data.msg_type !== 'authorize') {
+                    if (data.error && !['authorize', 'buy'].includes(data.msg_type)) {
                         addLog(`Error: ${data.error.message}`);
                     }
                 } catch (error) {
@@ -199,9 +228,7 @@ const OverUnder = observer(() => {
         
         if (!isAuthorized.current) {
             addLog('Cannot trade: Not authorized');
-            if (journal?.pushMessage) {
-                journal.pushMessage({ message: '⚠️ Login required to trade.', type: 'error' });
-            }
+            journal.pushMessage('⚠️ Login required to trade.', 'error');
             setIsAutoRunning(false);
             return;
         }
@@ -220,7 +247,7 @@ const OverUnder = observer(() => {
             }
         };
 
-        addLog(`Executing trades with stake: ${stake}`);
+        addLog(`Executing multi-trade (Over 5 & Under 4) with stake: ${stake}`);
 
         // Trade 1: DIGITOVER 5
         ws.current.send(JSON.stringify({
@@ -234,7 +261,7 @@ const OverUnder = observer(() => {
             parameters: { ...commonParams.parameters, contract_type: 'DIGITUNDER', barrier: '4' }
         }));
         
-        addLog('Multi-Trade Sent');
+        addLog('Multi-Trade Requests Sent');
         
         if (!isTurbo) {
             setIsAutoRunning(false);
