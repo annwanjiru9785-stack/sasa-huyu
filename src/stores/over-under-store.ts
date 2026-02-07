@@ -11,6 +11,19 @@ const STATUS_AUTHORIZED = 'Account Connected';
 
 const MAX_TICKS = 1000;
 
+const pip_sizes = {
+    'R_100': 2,
+    'R_75': 4,
+    'R_50': 4,
+    'R_25': 3,
+    'R_10': 3,
+    '1HZ100V': 2,
+    '1HZ75V': 4,
+    '1HZ50V': 4,
+    '1HZ25V': 3,
+    '1HZ10V': 3,
+};
+
 export default class OverUnderStore {
     root_store: RootStore;
     ws: WebSocket | null = null;
@@ -218,8 +231,12 @@ export default class OverUnderStore {
                     }
 
                     if (data.msg_type === 'history') {
+                        const pip_size = pip_sizes[this.selected_symbol] || 2;
                         const prices = data.history.prices;
-                        const digits = prices.map((p: string | number) => parseInt(p.toString().slice(-1), 10));
+                        const digits = prices.map((p: string | number) => {
+                            const price_str = Number(p).toFixed(pip_size);
+                            return parseInt(price_str.slice(-1), 10);
+                        });
                         this.tick_history = digits;
                         if (digits.length > 0) {
                             this.last_digit = digits[digits.length - 1];
@@ -229,7 +246,9 @@ export default class OverUnderStore {
 
                     if (data.msg_type === 'tick') {
                         const quote = data.tick.quote;
-                        const digit = parseInt(quote.toString().slice(-1), 10);
+                        const pip_size = data.tick.pip_size;
+                        const quote_str = quote.toFixed(pip_size);
+                        const digit = parseInt(quote_str.slice(-1), 10);
 
                         this.last_digit = digit;
                         this.tick_history = [...this.tick_history.slice(-MAX_TICKS + 1), digit];
