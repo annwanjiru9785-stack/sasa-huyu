@@ -164,9 +164,8 @@
         .button-group {
             display: flex;
             gap: 12px;
-            margin-left: auto;
+            margin-top: 20px;
             width: 100%;
-            flex-wrap: wrap;
 
             button {
                 padding: 12px 24px;
@@ -175,6 +174,8 @@
                 cursor: pointer;
                 transition: all 0.2s;
                 border: none;
+                flex: 1;
+                min-height: 48px;
                 
                 &:disabled {
                     opacity: 0.5;
@@ -185,33 +186,16 @@
             .btn-primary {
                 background: var(--brand-red-coral);
                 color: white;
-                flex: 1;
                 &:hover:not(:disabled) { opacity: 0.9; }
-                &.running { background: var(--status-danger); animation: pulse 2s infinite; }
+                &.running { background: #ff4444; animation: pulse 2s infinite; }
             }
 
             .btn-secondary {
                 background: var(--general-main-1);
                 color: var(--text-prominent);
                 border: 1px solid var(--border-normal);
-                flex: 1;
                 &.active { border-color: var(--brand-red-coral); color: var(--brand-red-coral); }
                 &:hover:not(:disabled) { border-color: var(--brand-red-coral); }
-            }
-            
-            .btn-manual {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                flex: 1;
-                &:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); }
-            }
-            
-            .btn-reconnect {
-                background: var(--general-main-1);
-                color: var(--text-prominent);
-                border: 1px solid var(--border-normal);
-                flex: 1;
-                &:hover:not(:disabled) { border-color: var(--brand-red-coral); color: var(--brand-red-coral); }
             }
         }
     }
