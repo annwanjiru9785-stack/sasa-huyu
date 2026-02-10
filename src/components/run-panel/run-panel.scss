@@ -170,10 +170,15 @@
         overflow: hidden !important;
 
         .dc-tabs {
+            &__list {
+                background-color: #ffc0cb !important; // Pink color
+            }
+
             &__item {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 padding: 0 0.8rem;
+                background-color: transparent !important;
 
                 // Theme-responsive text color
                 color: var(--text-prominent) !important;
