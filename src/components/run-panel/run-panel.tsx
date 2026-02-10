@@ -168,8 +168,11 @@ const DrawerFooter = ({ is_clear_stat_disabled, onClearStatClick }: TDrawerFoote
         <Button
             id='db-run-panel__clear-button'
             className='run-panel__footer-button'
-            disabled={is_clear_stat_disabled}
-            onClick={onClearStatClick}
+            is_disabled={is_clear_stat_disabled}
+            onClick={() => {
+                console.log('[Run Panel] Reset button clicked');
+                onClearStatClick();
+            }}
             has_effect
             secondary
         >

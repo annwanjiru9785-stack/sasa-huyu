@@ -482,20 +482,39 @@ export default class RunPanelStore {
     };
 
     onClearStatClick = () => {
-        this.showClearStatDialog();
+        console.log('[Run Panel] onClearStatClick called');
+        this.clearStat();
     };
 
     clearStat = () => {
+        console.log('[Run Panel] clearStat executing...');
         const { summary_card, journal, transactions } = this.root_store;
 
         this.setIsRunning(false);
         this.setHasOpenContract(false);
         this.clear();
-        journal.clear();
-        summary_card.clear();
-        transactions.clear();
+        
+        if (journal && typeof journal.clear === 'function') {
+            console.log('[Run Panel] Clearing journal');
+            journal.clear();
+        }
+        
+        if (summary_card && typeof summary_card.clear === 'function') {
+            console.log('[Run Panel] Clearing summary card');
+            summary_card.clear();
+        }
+        
+        if (transactions && typeof transactions.clear === 'function') {
+            console.log('[Run Panel] Clearing transactions');
+            transactions.clear();
+        }
+        
         this.setContractStage(contract_stages.NOT_RUNNING);
         this.restoreOriginalAccount();
+        
+        // Ensure UI updates
+        this.setActiveTabIndex(0);
+        console.log('[Run Panel] clearStat completed');
     };
 
     toggleStatisticsInfoModal = () => {
