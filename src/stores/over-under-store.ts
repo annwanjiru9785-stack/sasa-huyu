@@ -39,6 +39,14 @@ export default class OverUnderStore {
     initial_stake = 1;
     martingale = 2;
     is_volatility_changer = false;
+    use_second_trigger = true;
+    is_manual_mode = false;
+    manual_contract_type = 'DIGITOVER';
+    manual_barrier = '5';
+    is_recovery_active = false;
+    recovery_contract_type = 'DIGITOVER';
+    recovery_barrier = '5';
+    use_recovery_delay = false;
     entry_digit = 7;
     second_entry_digit = 7;
     last_last_digit: number | null = null;
@@ -58,6 +66,14 @@ export default class OverUnderStore {
             initial_stake: observable,
             martingale: observable,
             is_volatility_changer: observable,
+            use_second_trigger: observable,
+            is_manual_mode: observable,
+            manual_contract_type: observable,
+            manual_barrier: observable,
+            is_recovery_active: observable,
+            recovery_contract_type: observable,
+            recovery_barrier: observable,
+            use_recovery_delay: observable,
             entry_digit: observable,
             second_entry_digit: observable,
             is_turbo: observable,
@@ -66,6 +82,14 @@ export default class OverUnderStore {
             setStake: action.bound,
             setMartingale: action.bound,
             setIsVolatilityChanger: action.bound,
+            setUseSecondTrigger: action.bound,
+            setIsManualMode: action.bound,
+            setManualContractType: action.bound,
+            setManualBarrier: action.bound,
+            setIsRecoveryActive: action.bound,
+            setRecoveryContractType: action.bound,
+            setRecoveryBarrier: action.bound,
+            setUseRecoveryDelay: action.bound,
             setEntryDigit: action.bound,
             setSecondEntryDigit: action.bound,
             setIsTurbo: action.bound,
@@ -106,6 +130,38 @@ export default class OverUnderStore {
 
     setIsVolatilityChanger(value: boolean) {
         this.is_volatility_changer = value;
+    }
+
+    setUseSecondTrigger(value: boolean) {
+        this.use_second_trigger = value;
+    }
+
+    setIsManualMode(value: boolean) {
+        this.is_manual_mode = value;
+    }
+
+    setManualContractType(value: string) {
+        this.manual_contract_type = value;
+    }
+
+    setManualBarrier(value: string) {
+        this.manual_barrier = value;
+    }
+
+    setIsRecoveryActive(value: boolean) {
+        this.is_recovery_active = value;
+    }
+
+    setRecoveryContractType(value: string) {
+        this.recovery_contract_type = value;
+    }
+
+    setRecoveryBarrier(value: string) {
+        this.recovery_barrier = value;
+    }
+
+    setUseRecoveryDelay(value: boolean) {
+        this.use_recovery_delay = value;
     }
 
     setEntryDigit(digit: number) {
@@ -150,8 +206,13 @@ export default class OverUnderStore {
         if (this.is_auto_running) {
             this.addLog("Tool started. Waiting for trigger...");
             this.root_store.run_panel.setActiveTab('journal');
+            
+            if (this.is_manual_mode) {
+                this.executeTrade(this.manual_contract_type, this.manual_barrier);
+            }
         } else {
             this.addLog("Tool stopped by user.");
+            this.setIsRecoveryActive(false);
         }
     }
     
@@ -271,7 +332,8 @@ export default class OverUnderStore {
                             });
 
                             // Check if all active trades for this round are finished
-                            if (this.contract_results.size >= 2) {
+                            const expected_count = (this.is_manual_mode || this.is_recovery_active) ? 1 : 2;
+                            if (this.contract_results.size >= expected_count) {
                                 this.processRoundResults();
                             }
                         }
@@ -302,14 +364,26 @@ export default class OverUnderStore {
                         this.tick_history = [...this.tick_history.slice(-MAX_TICKS + 1), digit];
 
                         if (this.is_auto_running) {
-                            const match1 = (this.last_last_digit === Number(this.entry_digit) && this.last_digit === Number(this.second_entry_digit));
-                            const match2 = (this.last_last_digit === Number(this.second_entry_digit) && this.last_digit === Number(this.entry_digit));
+                            let is_triggered = false;
                             
-                            if (match1 || match2) {
+                            if (this.use_second_trigger) {
+                                const match1 = (this.last_last_digit === Number(this.entry_digit) && this.last_digit === Number(this.second_entry_digit));
+                                const match2 = (this.last_last_digit === Number(this.second_entry_digit) && this.last_digit === Number(this.entry_digit));
+                                is_triggered = match1 || match2;
+                            } else {
+                                is_triggered = (this.last_digit === Number(this.entry_digit));
+                            }
+
+                            if (is_triggered) {
                                 // Only trigger if no active trades
                                 if (this.active_contracts.size === 0) {
-                                    this.addLog(`Trigger Hit: Pattern ${this.last_last_digit}-${this.last_digit} matches ${this.entry_digit} and ${this.second_entry_digit}`);
-                                    this.executeMultiTrade();
+                                    if (this.is_recovery_active) {
+                                        this.addLog(`Trigger Hit: Executing Recovery Trade`);
+                                        this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
+                                    } else {
+                                        this.addLog(`Trigger Hit: Pattern matched`);
+                                        this.executeMultiTrade();
+                                    }
                                 }
                             }
                         }
@@ -342,9 +416,16 @@ export default class OverUnderStore {
         if (all_loss) {
             this.stake = Number((this.stake * this.martingale).toFixed(2));
             this.addLog(`Martingale Applied: New stake is ${this.stake}`);
+            this.setIsRecoveryActive(true);
+            
+            if (!this.use_recovery_delay) {
+                this.addLog("Immediate recovery triggered (Delay OFF)");
+                this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
+            }
         } else if (any_win) {
             this.stake = this.initial_stake;
             this.addLog(`Win detected. Resetting stake to ${this.initial_stake}`);
+            this.setIsRecoveryActive(false);
             
             if (this.is_volatility_changer) {
                 const symbols = Object.keys(pip_sizes);
@@ -362,6 +443,31 @@ export default class OverUnderStore {
             this.setIsAutoRunning(false);
             this.addLog('Auto-run stopped (Turbo OFF).');
         }
+    }
+
+    executeTrade(contract_type: string, barrier: string) {
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.is_authorized) return;
+
+        const tradeAmount = Number(this.stake);
+        const currency = this.root_store.client.currency || 'USD';
+
+        const params = {
+            buy: 1,
+            price: tradeAmount,
+            parameters: {
+                amount: tradeAmount,
+                basis: 'stake',
+                currency: currency,
+                duration: 1,
+                duration_unit: 't',
+                symbol: this.selected_symbol,
+                contract_type,
+                barrier,
+            },
+        };
+
+        this.addLog(`Executing Trade: ${contract_type} ${barrier}. Stake: ${tradeAmount}`);
+        this.ws.send(JSON.stringify(params));
     }
 
     executeMultiTrade() {
