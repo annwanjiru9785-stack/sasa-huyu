@@ -200,6 +200,7 @@ export default class OverUnderStore {
         
         if (!this.is_auto_running) {
             this.initial_stake = this.stake;
+            this.setIsRecoveryActive(false); // Reset recovery on new start
         }
 
         this.setIsAutoRunning(!this.is_auto_running);
@@ -363,7 +364,7 @@ export default class OverUnderStore {
                         this.last_digit = digit;
                         this.tick_history = [...this.tick_history.slice(-MAX_TICKS + 1), digit];
 
-                        if (this.is_auto_running) {
+                        if (this.is_auto_running && !this.is_manual_mode) {
                             let is_triggered = false;
                             
                             if (this.use_second_trigger) {
@@ -380,7 +381,7 @@ export default class OverUnderStore {
                                     if (this.is_recovery_active) {
                                         this.addLog(`Trigger Hit: Executing Recovery Trade`);
                                         this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
-                                    } else if (!this.is_manual_mode) {
+                                    } else {
                                         this.addLog(`Trigger Hit: Pattern matched`);
                                         this.executeMultiTrade();
                                     }
@@ -439,9 +440,9 @@ export default class OverUnderStore {
         this.active_contracts.clear();
         this.contract_results.clear();
 
-        if (!this.is_turbo) {
+        if (this.is_manual_mode || !this.is_turbo) {
             this.setIsAutoRunning(false);
-            this.addLog('Auto-run stopped (Turbo OFF).');
+            this.addLog('Auto-run stopped.');
         }
     }
 
