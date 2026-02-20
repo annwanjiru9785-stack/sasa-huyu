@@ -99,7 +99,7 @@ const OverUnder = observer(() => {
     };
 
     return (
-        <div className="over-under-container">
+        <div className="over-under-container" style={{ height: 'calc(100vh - 15rem)', overflowY: 'auto' }}>
             <div className="stats-grid">
                 {digitStats.map((count, i) => {
                     const percentage = ((count / totalTicksCount) * 100).toFixed(1);
