@@ -482,36 +482,16 @@ export default class RunPanelStore {
     };
 
     onClearStatClick = () => {
-        console.log('[Run Panel] onClearStatClick called');
-        this.clearStat();
+        this.showClearStatDialog();
     };
 
     clearStat = () => {
-        console.log('[Run Panel] clearStat executing...');
-        const { summary_card, journal, transactions } = this.root_store;
+        const { journal, summary_card, transactions } = this.root_store;
 
-        // CRITICAL: Minimal logic to avoid session disruption.
-        // Wrap everything in an action to prevent multiple observers from triggering.
-        runInAction(() => {
-            if (journal && typeof journal.clear === 'function') {
-                journal.clear();
-            }
-            
-            if (summary_card && typeof summary_card.clear === 'function') {
-                summary_card.clear();
-            }
-            
-            if (transactions && typeof transactions.clear === 'function') {
-                // IMPORTANT: Ensure transactions.clear doesn't trigger API calls
-                // like proposal_open_contract or statement requests that Deriv might throttle.
-                transactions.clear();
-            }
-            
-            // Minimal UI refresh - don't force heavy re-renders
-            this.setActiveTabIndex(this.active_index);
-        });
-        
-        console.log('[Run Panel] clearStat completed');
+        this.onCloseDialog();
+        journal.clear();
+        summary_card.clear();
+        transactions.clear();
     };
 
     toggleStatisticsInfoModal = () => {
