@@ -61,6 +61,7 @@ export default class OverUnderStore {
     contract_results: Map<string, number> = new Map();
     active_subscription_id: string | null = null;
     differs_barrier_digit: number | null = null;
+    is_differs_recovery_mode = false;
 
     is_analyzing_volatility = false;
     analysis_queue: string[] = [];
@@ -105,6 +106,7 @@ export default class OverUnderStore {
             current_analyzing_symbol: observable,
             is_authorizing: observable,
             differs_barrier_digit: observable,
+            is_differs_recovery_mode: observable,
             setStake: action.bound,
             setMartingale: action.bound,
             setIsVolatilityChanger: action.bound,
@@ -255,6 +257,7 @@ export default class OverUnderStore {
             this.is_purchasing = false;
             this.is_processing_round = false;
             this.differs_barrier_digit = null;
+            this.is_differs_recovery_mode = false;
         }
     }
 
@@ -427,8 +430,15 @@ export default class OverUnderStore {
                             this.last_digit = digit;
                             this.tick_history = [...this.tick_history.slice(-MAX_TICKS + 1), digit];
                             if (this.is_auto_running && !this.is_analyzing_volatility && !this.is_purchasing && !this.is_processing_round && this.active_contracts.size === 0) {
-                                if (this.is_differs_mode) {
+                                if (this.is_differs_mode && !this.is_differs_recovery_mode) {
                                     this.analyzeAndExecuteDiffers();
+                                } else if (this.is_differs_mode && this.is_differs_recovery_mode) {
+                                    // In differs recovery mode, trade Over/Under based on recovery config
+                                    let is_triggered = this.use_second_trigger ? (this.last_digit === this.entry_digit && this.last_last_digit === this.second_entry_digit) : (this.last_digit === this.entry_digit);
+                                    if (is_triggered) {
+                                        this.addLog(`Trigger Hit: Differs Recovery Trade (${this.recovery_contract_type} ${this.recovery_barrier})`);
+                                        this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
+                                    }
                                 } else {
                                     let is_triggered = this.use_second_trigger ? (this.last_digit === this.entry_digit && this.last_last_digit === this.second_entry_digit) : (this.last_digit === this.entry_digit);
                                     if (is_triggered) {
@@ -475,6 +485,7 @@ export default class OverUnderStore {
         }
         
         const last50 = this.tick_history.slice(-50);
+        const last10 = this.tick_history.slice(-10);
         
         // 1. Calculate frequency over 50 ticks to find all digits
         const stats50 = Array(10).fill(0).map((_, i) => ({
@@ -486,11 +497,30 @@ export default class OverUnderStore {
         const sortedByFrequency = stats50.sort((a, b) => a.count - b.count);
         
         // Get the second least frequent digit
-        const secondLeastFrequentDigit = sortedByFrequency.length > 1 ? sortedByFrequency[1].digit : sortedByFrequency[0].digit;
-        const freq = (sortedByFrequency[1].count / 50) * 100;
+        const secondLeastFrequentDigit = sortedByFrequency[1].digit;
+        const secondLeastCount = sortedByFrequency[1].count;
+        const leastFrequentDigit = sortedByFrequency[0].digit;
         
-        this.differs_barrier_digit = secondLeastFrequentDigit;
-        this.addLog(`Differs Strategy: Found best volatility. Barrier digit set to ${secondLeastFrequentDigit} (2nd Least Frequent, Freq: ${freq.toFixed(1)}%). Waiting for digit to appear...`);
+        // 2. Check if second least frequent digit is increasing in the last 10 ticks
+        const countInLast5 = last10.slice(-5).filter(d => d === secondLeastFrequentDigit).length;
+        const countInPrev5 = last10.slice(0, 5).filter(d => d === secondLeastFrequentDigit).length;
+        const isIncreasing = countInLast5 > countInPrev5;
+        
+        // 3. Select barrier digit: if increasing, use least frequent; otherwise use second least frequent
+        let selectedBarrierDigit: number;
+        let selectionReason: string;
+        
+        if (isIncreasing) {
+            selectedBarrierDigit = leastFrequentDigit;
+            selectionReason = `Least Frequent (2nd least was increasing)`;
+        } else {
+            selectedBarrierDigit = secondLeastFrequentDigit;
+            selectionReason = `2nd Least Frequent (not increasing)`;
+        }
+        
+        const freq = (secondLeastCount / 50) * 100;
+        this.differs_barrier_digit = selectedBarrierDigit;
+        this.addLog(`Differs Strategy: Barrier digit set to ${selectedBarrierDigit} (${selectionReason}, Freq: ${freq.toFixed(1)}%). Waiting for digit to appear...`);
     }
 
     processRoundResults() {
@@ -505,8 +535,11 @@ export default class OverUnderStore {
                 this.addLog("Immediate recovery trade");
                 this.is_processing_round = false;
                 if (this.is_differs_mode) {
+                    // Switch to recovery mode (Over/Under) instead of continuing differs
+                    this.is_differs_recovery_mode = true;
                     this.differs_barrier_digit = null;
-                    this.analyzeAndExecuteDiffers();
+                    this.addLog(`Switching to Recovery Mode: ${this.recovery_contract_type} ${this.recovery_barrier}`);
+                    this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
                 } else {
                     this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
                 }
@@ -518,6 +551,7 @@ export default class OverUnderStore {
             this.addLog(`Resetting stake to ${this.initial_stake}`);
             this.setIsRecoveryActive(false);
             if (this.is_differs_mode) {
+                this.is_differs_recovery_mode = false;
                 this.differs_barrier_digit = null;
             }
             if (this.is_volatility_changer) this.startVolatilityAnalysis();
