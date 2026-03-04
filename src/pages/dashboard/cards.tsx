@@ -111,6 +111,14 @@ const Cards = observer(({ is_mobile, has_dashboard_strategies }: TCardProps) => 
                 });
             },
         },
+        {
+            id: 'accum',
+            icon: <DerivLightQuickStrategyIcon height='48px' width='48px' />,
+            content: <Localize i18n_default_text='ACCUM' />,
+            callback: () => {
+                window.open('https://accumulator.vercel.app', '_blank');
+            },
+        },
     ];
 
     return React.useMemo(
