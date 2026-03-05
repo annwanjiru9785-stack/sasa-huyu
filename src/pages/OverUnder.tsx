@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useStore } from '@/hooks/useStore';
 import './over-under.scss';
@@ -107,6 +107,8 @@ const OverUnder = observer(() => {
     
     const connectionStatusText = is_authorizing ? 'Authorizing...' : connection_status;
 
+    const [showGuide, setShowGuide] = useState(false);
+
     const startButtonText = useMemo(() => {
         if (is_authorizing) return 'AUTHORIZING...';
         if (is_auto_running) {
@@ -121,6 +123,48 @@ const OverUnder = observer(() => {
 
     return (
         <div className="over-under-container" style={{ height: 'calc(100vh - 15rem)', overflowY: 'auto' }}>
+            <button className="floating-ai-btn" style={{ bottom: '90px', backgroundColor: '#28a745' }} onClick={() => setShowGuide(true)}>
+                GUIDE
+            </button>
+
+            {showGuide && (
+                <div className="guide-modal-overlay" onClick={() => setShowGuide(false)}>
+                    <div className="guide-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="guide-close-btn" onClick={() => setShowGuide(false)}>×</button>
+                        <h2>Over/Under Tool Guide</h2>
+                        
+                        <div className="guide-section">
+                            <h3>General Controls</h3>
+                            <ul>
+                                <li><strong>Index:</strong> Select the market volatility index to trade on.</li>
+                                <li><strong>Trigger Digits:</strong> Set the digit(s) that must appear to trigger a trade. Use "2ND" to enable a two-digit sequence trigger.</li>
+                                <li><strong>Stake:</strong> Your base trade amount.</li>
+                                <li><strong>Martingale:</strong> Multiplier applied to the stake after a loss to recover funds.</li>
+                            </ul>
+                        </div>
+
+                        <div className="guide-section">
+                            <h3>Strategy Switches</h3>
+                            <ul>
+                                <li><strong>Volatility Changer:</strong> Automatically scans all indices and switches to the one with the best statistical score.</li>
+                                <li><strong>DIFFERS:</strong> Enables the Differs strategy. It identifies rare digits and waits for a 5-tick gap after their appearance before trading "Digit Differs".</li>
+                                <li><strong>2term:</strong> Available only in Differs mode. When ON, profits from a winning trade are added to the next trade's stake for compounded growth.</li>
+                                <li><strong>Automate:</strong> Automatically restarts analysis or trading cycles after a round is completed.</li>
+                                <li><strong>Turbo Mode:</strong> When enabled, the bot continues to wait for triggers and trade without stopping after each round.</li>
+                            </ul>
+                        </div>
+
+                        <div className="guide-section">
+                            <h3>Recovery System</h3>
+                            <ul>
+                                <li><strong>Recovery Active:</strong> Automatically triggers after a loss. The bot switches to the "Recovery Type" and "Recovery Barrier" you've configured.</li>
+                                <li><strong>Trigger Wait:</strong> In recovery mode, the bot strictly waits for your "Trigger Digits" before executing recovery trades.</li>
+                                <li><strong>Recovery Goal:</strong> It will continue trading with the Martingale stake until the total lost amount is fully recovered, then automatically returns to your original strategy.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="stats-grid">
                 {digitStats.map((count, i) => {
                     const percentage = ((count / totalTicksCount) * 100).toFixed(1);

@@ -64,6 +64,7 @@ export default class OverUnderStore {
     is_differs_recovery_mode = false;
     is_2term_mode = false;
     last_profit = 0;
+    total_loss_to_recover = 0;
 
     is_analyzing_volatility = false;
     analysis_queue: string[] = [];
@@ -558,38 +559,52 @@ export default class OverUnderStore {
 
     processRoundResults() {
         this.is_processing_round = true;
+        const roundProfit = Array.from(this.contract_results.values()).reduce((sum, p) => sum + p, 0);
         const all_loss = Array.from(this.contract_results.values()).every(p => p < 0);
-        this.addLog(`Round finished. All trades lost: ${all_loss}`);
+        
+        this.addLog(`Round finished. Profit: ${roundProfit.toFixed(2)}, All lost: ${all_loss}`);
+        
         if (all_loss) {
+            // Update total loss to recover
+            this.total_loss_to_recover += Math.abs(roundProfit);
+            
+            // Martingale applies to current stake
             this.stake = Number((this.stake * this.martingale).toFixed(2));
-            this.addLog(`Martingale Applied: New stake is ${this.stake}`);
+            this.addLog(`Loss detected. Total to recover: ${this.total_loss_to_recover.toFixed(2)}. Martingale Stake: ${this.stake}`);
+            
             this.setIsRecoveryActive(true);
             if (this.is_differs_mode) {
-                // Switch to recovery mode (Over/Under) instead of continuing differs
                 this.is_differs_recovery_mode = true;
                 this.differs_barrier_digit = null;
                 this.addLog(`Switching to Recovery Mode: ${this.recovery_contract_type} ${this.recovery_barrier}`);
             }
-            // Recovery logic: Always wait for trigger digit if recovery is active
-            // So we don't execute trade immediately here anymore
         } else {
-            const totalProfit = Array.from(this.contract_results.values()).reduce((sum, p) => sum + p, 0);
-            if (this.is_2term_mode) {
-                // For 2term: next stake = current stake + total profit
-                const nextStake = Number((this.stake + totalProfit).toFixed(2));
-                this.addLog(`2term Applied: Stake updated with profit ${totalProfit.toFixed(2)}. New stake: ${nextStake}`);
-                this.stake = nextStake;
+            if (this.is_recovery_active) {
+                this.total_loss_to_recover -= roundProfit;
+                if (this.total_loss_to_recover <= 0) {
+                    this.total_loss_to_recover = 0;
+                    this.setIsRecoveryActive(false);
+                    this.is_differs_recovery_mode = false;
+                    this.stake = this.initial_stake;
+                    this.addLog(`Recovery complete! Resetting to initial stake: ${this.stake}`);
+                    if (this.is_volatility_changer) this.startVolatilityAnalysis();
+                } else {
+                    this.addLog(`Recovery in progress. Remaining loss: ${this.total_loss_to_recover.toFixed(2)}. Continuing with stake: ${this.stake}`);
+                }
             } else {
-                this.stake = this.initial_stake;
-                this.addLog(`Resetting stake to ${this.initial_stake}`);
+                // Normal win logic
+                if (this.is_2term_mode) {
+                    const nextStake = Number((this.stake + roundProfit).toFixed(2));
+                    this.addLog(`2term Applied: Stake updated with profit ${roundProfit.toFixed(2)}. New stake: ${nextStake}`);
+                    this.stake = nextStake;
+                } else {
+                    this.stake = this.initial_stake;
+                    this.addLog(`Win detected. Resetting to initial stake: ${this.stake}`);
+                }
+                if (this.is_volatility_changer) this.startVolatilityAnalysis();
             }
-            this.setIsRecoveryActive(false);
-            if (this.is_differs_mode) {
-                this.is_differs_recovery_mode = false;
-                this.differs_barrier_digit = null;
-            }
-            if (this.is_volatility_changer) this.startVolatilityAnalysis();
         }
+        
         this.contract_results.clear();
         this.is_processing_round = false;
         if (!this.is_turbo) {
