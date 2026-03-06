@@ -439,18 +439,24 @@ export default class OverUnderStore {
                                 if (this.is_differs_mode && !this.is_differs_recovery_mode && !this.is_recovery_active) {
                                     this.analyzeAndExecuteDiffers();
                                 } else {
-                                    // Recovery or Normal Over/Under mode: both should wait for trigger
-                                    let is_triggered = this.use_second_trigger ? (this.last_digit === this.entry_digit && this.last_last_digit === this.second_entry_digit) : (this.last_digit === this.entry_digit);
-                                    if (is_triggered) {
-                                        if (this.is_recovery_active) {
-                                            this.addLog(`Trigger Hit: Recovery Trade (${this.recovery_contract_type} ${this.recovery_barrier})`);
-                                            this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
-                                        } else if (this.is_manual_mode) {
-                                            this.addLog(`Trigger Hit: Manual Trade`);
-                                            this.executeTrade(this.manual_contract_type, this.manual_barrier);
-                                        } else if (!this.is_differs_mode) {
-                                            this.addLog(`Trigger Hit: Standard Multi-Trade`);
-                                            this.executeMultiTrade();
+                                    // Recovery mode: non-differs should execute immediately
+                                    if (this.is_recovery_active && !this.is_differs_mode) {
+                                        this.addLog(`Recovery Active (Non-Differs): Executing immediately.`);
+                                        this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
+                                    } else {
+                                        // Normal or Differs-Recovery mode: wait for trigger
+                                        let is_triggered = this.use_second_trigger ? (this.last_digit === this.entry_digit && this.last_last_digit === this.second_entry_digit) : (this.last_digit === this.entry_digit);
+                                        if (is_triggered) {
+                                            if (this.is_recovery_active) {
+                                                this.addLog(`Trigger Hit: Recovery Trade (${this.recovery_contract_type} ${this.recovery_barrier})`);
+                                                this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
+                                            } else if (this.is_manual_mode) {
+                                                this.addLog(`Trigger Hit: Manual Trade`);
+                                                this.executeTrade(this.manual_contract_type, this.manual_barrier);
+                                            } else if (!this.is_differs_mode) {
+                                                this.addLog(`Trigger Hit: Standard Multi-Trade`);
+                                                this.executeMultiTrade();
+                                            }
                                         }
                                     }
                                 }
@@ -471,52 +477,32 @@ export default class OverUnderStore {
     }
 
     analyzeAndExecuteDiffers() {
-        if (this.tick_history.length < 100 || this.is_purchasing) return;
+        if (this.tick_history.length < 1000 || this.is_purchasing) return;
         
-        // New differs strategy with dual analysis windows:
-        // - 25 ticks for speed analysis
-        // - 100 ticks for stability analysis
-        // Filter: Find digits with frequency < 9% in 100-tick window
-        // Trigger: Wait for digit to appear, then wait 4 ticks without it appearing
+        // Strategy: Look for the second least appearing number in the 1000 historical ticks
+        // Trigger: Wait for the digit to appear then execute the trade using the digit as a barrier.
         
-        // If we don't have a barrier digit set yet, find the rare digit from last 100 ticks
         if (this.differs_barrier_digit === null) {
-            const last100 = this.tick_history.slice(-100);
-            const last25 = this.tick_history.slice(-25);
+            const last1000 = this.tick_history.slice(-1000);
             
-            // Calculate frequency over last 100 ticks (stability window)
-            const stats100 = Array(10).fill(0).map((_, i) => ({
+            // Calculate frequency over last 1000 ticks
+            const stats1000 = Array(10).fill(0).map((_, i) => ({
                 digit: i,
-                count: last100.filter(d => d === i).length,
-                frequency: (last100.filter(d => d === i).length / 100) * 100
+                count: last1000.filter(d => d === i).length,
+                frequency: (last1000.filter(d => d === i).length / 1000) * 100
             }));
             
-            // Calculate frequency over last 25 ticks (speed window)
-            const stats25 = Array(10).fill(0).map((_, i) => ({
-                digit: i,
-                count: last25.filter(d => d === i).length,
-                frequency: (last25.filter(d => d === i).length / 25) * 100
-            }));
-            
-            // Filter: Find digits with frequency below 9% in the 100-tick window
-            const rareDigits = stats100.filter(s => s.frequency < 9);
-            
-            if (rareDigits.length === 0) {
-                this.addLog(`Differs Strategy: No rare digits found (< 9% frequency in 100 ticks). Waiting...`);
-                return;
-            }
-            
-            // Among rare digits, select the one with lowest frequency in 100-tick window
-            const selectedDigit = rareDigits.reduce((min, curr) => curr.frequency < min.frequency ? curr : min);
+            // Sort by count to find the second least appearing number
+            const sortedStats = [...stats1000].sort((a, b) => a.count - b.count);
+            const selectedDigit = sortedStats[1]; // Second least frequent
             const rareDigitValue = selectedDigit.digit;
-            const rareDigitFreq100 = selectedDigit.frequency;
-            const rareDigitFreq25 = stats25[rareDigitValue].frequency;
+            const rareDigitFreq1000 = selectedDigit.frequency;
             
             this.differs_barrier_digit = rareDigitValue;
             // Store state: waiting for rare digit to appear
             (this as any).differs_state = 'waiting_for_digit_appearance';
             (this as any).differs_gap_counter = 0;
-            this.addLog(`Differs Strategy: Rare digit identified as ${rareDigitValue} (${rareDigitFreq100.toFixed(1)}% in 100 ticks, ${rareDigitFreq25.toFixed(1)}% in 25 ticks). Waiting for appearance...`);
+            this.addLog(`Differs Strategy: Second least frequent digit identified as ${rareDigitValue} (${rareDigitFreq1000.toFixed(1)}% in 1000 ticks). Waiting for appearance...`);
             return;
         }
         
@@ -526,28 +512,7 @@ export default class OverUnderStore {
         // State 1: Waiting for rare digit to appear
         if (currentState === 'waiting_for_digit_appearance') {
             if (this.last_digit === rareDigit) {
-                this.addLog(`Rare digit ${rareDigit} appeared! Now waiting for 5-tick gap...`);
-                (this as any).differs_state = 'waiting_for_gap';
-                (this as any).differs_gap_counter = 0;
-            }
-            return;
-        }
-        
-        // State 2: Rare digit appeared, waiting for 5-tick gap
-        if (currentState === 'waiting_for_gap') {
-            (this as any).differs_gap_counter = ((this as any).differs_gap_counter || 0) + 1;
-            
-            // Check if the current tick is the rare digit
-            if (this.last_digit === rareDigit) {
-                // Rare digit appeared again, reset gap counter
-                this.addLog(`Rare digit ${rareDigit} appeared during gap. Resetting gap counter...`);
-                (this as any).differs_gap_counter = 0;
-                return;
-            }
-            
-            // Check if we've completed the 5-tick gap
-            if ((this as any).differs_gap_counter >= 5) {
-                this.addLog(`5-tick gap completed without rare digit ${rareDigit}. Executing DIFFERS trade with barrier ${rareDigit}...`);
+                this.addLog(`Rare digit ${rareDigit} appeared! Executing DIFFERS trade with barrier ${rareDigit}...`);
                 this.differs_barrier_digit = null; // Reset for next cycle
                 (this as any).differs_state = 'waiting_for_digit_appearance';
                 (this as any).differs_gap_counter = 0;
@@ -576,7 +541,10 @@ export default class OverUnderStore {
             if (this.is_differs_mode) {
                 this.is_differs_recovery_mode = true;
                 this.differs_barrier_digit = null;
-                this.addLog(`Switching to Recovery Mode: ${this.recovery_contract_type} ${this.recovery_barrier}`);
+                this.addLog(`Switching to Recovery Mode (Differs): ${this.recovery_contract_type} ${this.recovery_barrier}. Waiting for trigger...`);
+            } else {
+                this.addLog(`Switching to Recovery Mode (Immediate): ${this.recovery_contract_type} ${this.recovery_barrier}`);
+                this.executeTrade(this.recovery_contract_type, this.recovery_barrier);
             }
         } else {
             if (this.is_recovery_active) {
