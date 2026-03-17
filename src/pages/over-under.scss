@@ -1,798 +1,821 @@
+// ─────────────────────────────────────────────────────────────
+//  Over/Under Tool — Premium Dark Trading Terminal Theme
+// ─────────────────────────────────────────────────────────────
 
-// ─── Variables ───────────────────────────────────────────────
-$primary: #007bff;
-$success: #28a745;
-$danger: #dc3545;
-$warning: #ffc107;
-$bg-main: #f0f2f5;
-$bg-panel: #ffffff;
-$text-main: #1a1d23;
-$text-muted: #6b7280;
-$border-color: #e5e7eb;
-$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 18px;
+// Palette
+$bg:        #0b0f1a;
+$surface:   #111827;
+$card:      #141d2e;
+$border:    rgba(255,255,255,0.07);
+$border-hi: rgba(255,255,255,0.13);
+$text:      #e8edf5;
+$muted:     #6b7a99;
+$blue:      #3b82f6;
+$purple:    #a855f7;
+$green:     #10b981;
+$red:       #ef4444;
+$amber:     #f59e0b;
+$orange:    #f97316;
 
-// ─── Mixins ──────────────────────────────────────────────────
-@mixin flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+@mixin row { display:flex; align-items:center; }
+@mixin label-style {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: $muted;
 }
 
-@mixin panel-base {
-    background: $bg-panel;
-    border-radius: $radius-md;
-    box-shadow: $shadow-md;
-    padding: 1.5rem;
-    border: 1px solid $border-color;
-}
-
-// ─── Root Container ──────────────────────────────────────────
-.over-under-container {
+// ─────────────────────────────────────────────────────────────
+//  Root
+// ─────────────────────────────────────────────────────────────
+.ou-root {
     display: flex;
     flex-direction: column;
-    padding: 1.25rem 1.5rem;
-    background: $bg-main;
-    color: $text-main;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem 1.5rem;
+    background: $bg;
+    color: $text;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    height: calc(100vh - 4rem);
-    overflow-y: auto;
-    gap: 1.25rem;
+    min-height: calc(100vh - 4rem);
+    font-size: 0.9rem;
+    position: relative;
 
-    @media (max-width: 640px) {
-        padding: 0.75rem;
-        gap: 0.75rem;
+    *, *::before, *::after { box-sizing: border-box; }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Guide FAB
+// ─────────────────────────────────────────────────────────────
+.ou-guide-fab {
+    @include row;
+    gap: 0.4rem;
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.55rem 1rem;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid $border-hi;
+    color: $muted;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 200;
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+
+    &:hover { background: rgba(255,255,255,0.1); color: $text; border-color: rgba(255,255,255,0.2); }
+
+    @media (max-width: 600px) { span { display: none; } padding: 0.6rem; border-radius: 50%; }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Guide Modal
+// ─────────────────────────────────────────────────────────────
+.ou-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.ou-guide {
+    background: $card;
+    border: 1px solid $border-hi;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 620px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+
+    &__header {
+        @include row;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid $border;
     }
 
-    // ── Floating Guide Button ─────────────────────────────────
-    .floating-guide-btn {
-        position: fixed;
-        bottom: 1.75rem;
-        right: 1.75rem;
-        @include flex-center;
-        gap: 0.4rem;
-        padding: 0.65rem 1.1rem;
-        border-radius: 50px;
-        background: linear-gradient(135deg, #1a1d23, #2d3748);
-        color: white;
-        border: none;
-        font-weight: 600;
-        font-size: 0.8rem;
-        letter-spacing: 0.5px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-        cursor: pointer;
-        z-index: 100;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
-        &:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
-        }
-
-        @media (max-width: 768px) {
-            bottom: 1rem;
-            right: 1rem;
-            span { display: none; }
-            padding: 0.65rem;
-            border-radius: 50%;
-        }
-    }
-
-    // ── Digit Stats Bar ───────────────────────────────────────
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(10, 1fr);
-        gap: 0.6rem;
-
-        @media (max-width: 900px) { grid-template-columns: repeat(5, 1fr); }
-        @media (max-width: 640px) { gap: 0.35rem; }
-
-        .digit-card {
-            background: $bg-panel;
-            border: 1px solid $border-color;
-            border-radius: $radius-sm;
-            padding: 0.6rem 0.5rem;
-            text-align: center;
-            position: relative;
-            transition: all 0.25s ease;
-            box-shadow: $shadow-sm;
-
-            &.active {
-                border-color: $primary;
-                background: rgba($primary, 0.04);
-                box-shadow: 0 0 0 2px rgba($primary, 0.15);
-                .digit-num { color: $primary; }
-            }
-
-            &.hot { border-bottom: 3px solid $success; }
-            &.cold { border-bottom: 3px solid $danger; }
-
-            .digit-num {
-                font-size: 1.4rem;
-                font-weight: 800;
-                display: block;
-                line-height: 1;
-                margin-bottom: 0.15rem;
-                color: $text-main;
-
-                @media (max-width: 640px) { font-size: 1.1rem; }
-            }
-
-            .digit-percent {
-                font-size: 0.72rem;
-                font-weight: 600;
-                color: $text-muted;
-            }
-
-            .digit-bar-wrapper {
-                height: 50px;
-                background: #f3f4f6;
-                border-radius: 4px;
-                margin-top: 0.5rem;
-                position: relative;
-                overflow: hidden;
-
-                @media (max-width: 640px) { height: 28px; margin-top: 0.35rem; }
-
-                .digit-bar-fill {
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    width: 100%;
-                    background: linear-gradient(to top, $primary, #66b2ff);
-                    border-radius: 4px 4px 0 0;
-                    transition: height 0.2s ease-out;
-
-                    &.hot { background: linear-gradient(to top, $success, #6fcf97); }
-                    &.cold { background: linear-gradient(to top, $danger, #f87171); }
-                }
-            }
-        }
-    }
-
-    // ── Main Layout ───────────────────────────────────────────
-    .main-layout {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr;
-        gap: 1.25rem;
-        align-items: start;
-
-        @media (max-width: 1100px) { grid-template-columns: 1fr; }
-        @media (max-width: 640px) { gap: 0.75rem; }
-    }
-
-    // ── Controls Panel ────────────────────────────────────────
-    .controls-panel {
-        @include panel-base;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid $border-color;
-
-            .header-title {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-weight: 700;
-                font-size: 1rem;
-                color: $text-main;
-            }
-
-            .connection-badge {
-                @include flex-center;
-                gap: 0.35rem;
-                padding: 0.35rem 0.75rem;
-                border-radius: 50px;
-                font-size: 0.75rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.4px;
-
-                &.connected { background: rgba($success, 0.1); color: $success; }
-                &.authorizing { background: rgba($warning, 0.12); color: darken($warning, 15%); }
-                &.disconnected { background: rgba($danger, 0.1); color: $danger; }
-            }
-        }
-    }
-
-    // ── Config Sections ───────────────────────────────────────
-    .config-section {
-        border: 1px solid $border-color;
-        border-radius: $radius-sm;
-        overflow: hidden;
-        margin-bottom: 0.75rem;
-
-        &:last-of-type { margin-bottom: 0; }
-
-        &--collapsible {
-            .section-toggle {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 0.75rem 1rem;
-                background: #f9fafb;
-                border: none;
-                cursor: pointer;
-                transition: background 0.2s;
-
-                &:hover { background: #f3f4f6; }
-            }
-        }
-
-        .section-label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.65rem 1rem;
-            background: #f9fafb;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: $text-muted;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            border-bottom: 1px solid $border-color;
-
-            svg { color: $text-muted; }
-        }
-
-        // When section-label is inside a button (.section-toggle), remove inner border
-        .section-toggle .section-label {
-            padding: 0;
-            background: transparent;
-            border: none;
-        }
-
-        .section-body {
-            padding: 1rem;
-            background: white;
-            overflow: hidden;
-        }
-    }
-
-    // ── Field Layout ──────────────────────────────────────────
-    .field-row {
-        display: flex;
-        gap: 1rem;
-        align-items: flex-end;
-        margin-bottom: 0.75rem;
-
-        &:last-child { margin-bottom: 0; }
-
-        @media (max-width: 640px) {
-            flex-direction: column;
-            gap: 0.6rem;
-        }
-
-        .field-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-
-            &--narrow {
-                flex: 0 0 auto;
-                min-width: 110px;
-            }
-
-            label {
-                font-size: 0.78rem;
-                font-weight: 700;
-                color: $text-muted;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            .modern-select,
-            .modern-input {
-                padding: 0.65rem 0.9rem;
-                border: 1.5px solid $border-color;
-                border-radius: $radius-sm;
-                font-size: 0.9rem;
-                background: #fff;
-                color: $text-main;
-                transition: all 0.2s;
-                width: 100%;
-
-                &:focus {
-                    outline: none;
-                    border-color: $primary;
-                    box-shadow: 0 0 0 3px rgba($primary, 0.1);
-                }
-
-                &:disabled {
-                    background: #f9fafb;
-                    color: #9ca3af;
-                    cursor: not-allowed;
-                }
-            }
-        }
-    }
-
-    // ── Strategy Picker ───────────────────────────────────────
-    .strategy-picker {
-        position: relative;
-        margin-bottom: 0.75rem;
-
-        .strategy-selected {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.85rem 1rem;
-            border: 1.5px solid $border-color;
-            border-radius: $radius-sm;
-            background: #fff;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-
-            &:hover:not(.disabled) {
-                border-color: $primary;
-                box-shadow: 0 0 0 3px rgba($primary, 0.08);
-            }
-
-            &.disabled {
-                background: #f9fafb;
-                cursor: not-allowed;
-                opacity: 0.7;
-            }
-
-            &__left {
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-            }
-
-            .strategy-icon {
-                @include flex-center;
-                width: 34px;
-                height: 34px;
-                border-radius: 8px;
-                background: #f3f4f6;
-                flex-shrink: 0;
-            }
-
-            .strategy-name {
-                display: block;
-                font-weight: 700;
-                font-size: 0.9rem;
-                color: $text-main;
-            }
-
-            .strategy-desc {
-                display: block;
-                font-size: 0.75rem;
-                color: $text-muted;
-                margin-top: 1px;
-            }
-
-            .strategy-chevron {
-                color: $text-muted;
-                transition: transform 0.2s;
-                flex-shrink: 0;
-
-                &.open { transform: rotate(180deg); }
-            }
-        }
-
-        .strategy-dropdown {
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1.5px solid $border-color;
-            border-radius: $radius-sm;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-            z-index: 50;
-            overflow: hidden;
-        }
-
-        .strategy-option {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.85rem 1rem;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid $border-color;
-            cursor: pointer;
-            text-align: left;
-            transition: background 0.15s;
-
-            &:last-child { border-bottom: none; }
-
-            &:hover { background: #f9fafb; }
-
-            &.active {
-                background: rgba(var(--strategy-color, 0, 123, 255), 0.05);
-                border-left: 3px solid var(--strategy-color, #007bff);
-            }
-
-            &__icon {
-                @include flex-center;
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                background: #f3f4f6;
-                color: var(--strategy-color, #007bff);
-                flex-shrink: 0;
-            }
-
-            &__name {
-                display: block;
-                font-weight: 700;
-                font-size: 0.88rem;
-                color: $text-main;
-            }
-
-            &__desc {
-                display: block;
-                font-size: 0.73rem;
-                color: $text-muted;
-                margin-top: 1px;
-            }
-
-            &__check {
-                margin-left: auto;
-                color: $success;
-                flex-shrink: 0;
-            }
-        }
-    }
-
-    // ── Strategy Fields (animated region) ────────────────────
-    .strategy-fields {
-        overflow: hidden;
-    }
-
-    .strategy-info-banner {
-        display: flex;
-        align-items: center;
+    &__title {
+        @include row;
         gap: 0.5rem;
-        padding: 0.55rem 0.85rem;
-        background: rgba(111, 66, 193, 0.06);
-        border-left: 3px solid var(--banner-color, $primary);
-        border-radius: 0 6px 6px 0;
-        font-size: 0.78rem;
-        color: $text-muted;
-        font-weight: 500;
-        margin-bottom: 0.75rem;
-
-        svg { color: var(--banner-color, $primary); flex-shrink: 0; }
+        font-weight: 700;
+        font-size: 1rem;
+        color: $text;
     }
 
-    // ── Trigger Controls ──────────────────────────────────────
-    .trigger-container {
+    &__close {
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        border: 1px solid $border;
+        background: rgba(255,255,255,0.04);
+        color: $muted;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+        line-height: 1;
+
+        &:hover { background: rgba(255,255,255,0.1); color: $text; transform: rotate(90deg); }
+    }
+
+    &__body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+
+        &::-webkit-scrollbar { width: 4px; }
+        &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    }
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #a0aec0;
+            margin: 0;
+            padding: 0.6rem 0.85rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+            border-left: 2px solid rgba(255,255,255,0.08);
+
+            strong { color: $text; }
+            em { color: $muted; font-style: normal; font-weight: 600; }
+        }
+    }
+
+    &__sh {
+        @include row;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        margin: 0;
+
+        &.blue   { color: $blue; }
+        &.purple { color: $purple; }
+        &.green  { color: $green; }
+        &.orange { color: $orange; }
+        &.red    { color: $red; }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Digit Heatmap
+// ─────────────────────────────────────────────────────────────
+.ou-heatmap {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 0.5rem;
+
+    @media (max-width: 800px) { grid-template-columns: repeat(5, 1fr); }
+    @media (max-width: 450px) { gap: 0.3rem; }
+}
+
+.ou-digit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 0.25rem 0.4rem;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 8px;
+    cursor: default;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &.active {
+        border-color: $blue;
+        box-shadow: 0 0 0 1px rgba($blue, 0.3), 0 0 12px rgba($blue, 0.15);
+        .ou-digit__num { color: $blue; }
+    }
+
+    &.hot { border-color: rgba($green, 0.4); .ou-digit__num { color: $green; } }
+    &.cold { border-color: rgba($red, 0.4); .ou-digit__num { color: $red; } }
+
+    &__num {
+        font-size: 1.1rem;
+        font-weight: 800;
+        line-height: 1;
+        color: $text;
+        @media (max-width: 450px) { font-size: 0.9rem; }
+    }
+
+    &__bar {
+        width: 100%;
+        height: 44px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+        @media (max-width: 450px) { height: 28px; }
+    }
+
+    &__fill {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        border-radius: 4px 4px 0 0;
+        min-height: 2px;
+    }
+
+    &__pct {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: $muted;
+        @media (max-width: 450px) { font-size: 0.6rem; }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Main Grid
+// ─────────────────────────────────────────────────────────────
+.ou-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1rem;
+    align-items: start;
+
+    @media (max-width: 1100px) { grid-template-columns: 1fr; }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Config Panel
+// ─────────────────────────────────────────────────────────────
+.ou-panel {
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 14px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    &__bar {
+        @include row;
+        justify-content: space-between;
+        padding: 0.9rem 1.1rem;
+        border-bottom: 1px solid $border;
+        background: rgba(255,255,255,0.02);
+
+        &-left {
+            @include row;
+            gap: 0.45rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: $text;
+            svg { color: $muted; }
+        }
+    }
+}
+
+// Status badge
+.ou-status {
+    @include row;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    padding: 0.3rem 0.7rem;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid $border;
+
+    &__dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        display: block;
+    }
+
+    &--ok  { color: $green;  &__dot, .ou-status__dot { background: $green; } }
+    &--off { color: $muted;  &__dot, .ou-status__dot { background: $muted; } }
+    &--pulse {
+        color: $amber;
+        .ou-status__dot {
+            background: $amber;
+            animation: statusPulse 1.2s ease-in-out infinite;
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Config Blocks
+// ─────────────────────────────────────────────────────────────
+.ou-block {
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid $border;
+
+    &:last-of-type { border-bottom: none; }
+
+    &__label {
+        @include row;
+        gap: 0.4rem;
+        @include label-style;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid $border;
+
+        svg { color: $muted; }
+    }
+
+    &--collapsible {
+        padding-bottom: 0;
+
+        &:last-of-type { border-bottom: none; }
+    }
+}
+
+.ou-collapse-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $muted;
+    transition: color 0.2s;
+
+    &:hover { color: $text; }
+
+    > .ou-block__label {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Field Layout
+// ─────────────────────────────────────────────────────────────
+.ou-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+
+    &--center { align-items: center; }
+
+    @media (max-width: 500px) {
+        flex-wrap: wrap;
+    }
+}
+
+.ou-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    min-width: 0;
+
+    &--auto {
+        flex: 0 0 auto;
+        min-width: 110px;
+    }
+
+    label {
+        @include label-style;
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Inputs
+// ─────────────────────────────────────────────────────────────
+.ou-input,
+.ou-select {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid $border-hi;
+    border-radius: 8px;
+    color: $text;
+    font-size: 0.88rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    appearance: none;
+
+    &::placeholder { color: $muted; }
+
+    &:focus {
+        outline: none;
+        border-color: $blue;
+        box-shadow: 0 0 0 2px rgba($blue, 0.15);
+        background: rgba(59,130,246,0.05);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    option { background: $card; color: $text; }
+}
+
+.ou-select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7a99' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    padding-right: 2rem;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Strategy Tabs
+// ─────────────────────────────────────────────────────────────
+.ou-strategy-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+
+    @media (max-width: 500px) { grid-template-columns: repeat(2, 1fr); }
+}
+
+.ou-strat-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.65rem 0.4rem;
+    border-radius: 8px;
+    border: 1px solid $border;
+    background: rgba(255,255,255,0.03);
+    color: $muted;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+
+    &__icon {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        justify-content: center;
+        width: 28px; height: 28px;
+        border-radius: 6px;
+        background: rgba(255,255,255,0.04);
+        transition: all 0.2s;
+    }
 
-        .digit-input-wrapper {
-            position: relative;
-            width: 54px;
+    &__label { font-size: 0.72rem; line-height: 1.2; }
 
-            .digit-input {
-                width: 100%;
-                padding: 0.65rem 0.4rem;
-                text-align: center;
-                font-weight: 800;
-                font-size: 1rem;
-                border: 1.5px solid $border-color;
-                border-radius: $radius-sm;
-                background: #fff;
-                color: $text-main;
-                transition: border-color 0.2s;
+    &:hover:not(:disabled) {
+        border-color: rgba(255,255,255,0.18);
+        color: $text;
+        background: rgba(255,255,255,0.06);
+    }
 
-                &:focus { outline: none; border-color: $primary; }
-                &:disabled { background: #f9fafb; cursor: not-allowed; }
-            }
+    &.active {
+        border-color: var(--sc, $blue);
+        background: rgba(var(--sc-raw, 59, 130, 246), 0.08);
+        color: var(--sc, $blue);
+        box-shadow: 0 0 0 1px var(--sc, $blue), inset 0 0 20px rgba(0,0,0,0.1);
 
-            .led-indicator {
-                position: absolute;
-                top: -4px;
-                right: -4px;
-                width: 10px;
-                height: 10px;
-                border-radius: 50%;
-                background: #d1d5db;
-                border: 2px solid white;
-                transition: all 0.25s;
-
-                &.active {
-                    background: $success;
-                    box-shadow: 0 0 8px rgba($success, 0.7);
-                    transform: scale(1.2);
-                }
-            }
-        }
-
-        .toggle-btn {
-            padding: 0.6rem 0.85rem;
-            border-radius: $radius-sm;
-            border: 1.5px solid $border-color;
-            background: white;
-            font-weight: 700;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: $text-muted;
-            white-space: nowrap;
-
-            &.active {
-                background: $primary;
-                color: white;
-                border-color: $primary;
-            }
-
-            &:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ou-strat-tab__icon {
+            background: var(--sc, $blue);
+            color: #fff;
+            box-shadow: 0 4px 12px var(--sg, rgba(59,130,246,0.4));
         }
     }
 
-    // ── Modern Switch ─────────────────────────────────────────
-    .modern-switch {
-        width: 42px;
-        height: 24px;
-        border-radius: 20px;
-        background: #d1d5db;
-        border: none;
-        position: relative;
-        cursor: pointer;
-        transition: background 0.3s;
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+// Strategy badge
+.ou-strat-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid $border;
+    font-size: 0.75rem;
+    color: $muted;
+    margin-bottom: 0.85rem;
+
+    &__dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: var(--sc, $blue);
         flex-shrink: 0;
-
-        .switch-handle {
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: white;
-            transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-        }
-
-        &.active {
-            background: $primary;
-            .switch-handle { left: 21px; }
-        }
-
-        &:disabled { opacity: 0.45; cursor: not-allowed; }
+        box-shadow: 0 0 6px var(--sc, $blue);
     }
+}
 
-    // ── Action Bar ────────────────────────────────────────────
-    .action-bar {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid $border-color;
+// Strategy fields area
+.ou-strat-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.85rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid $border;
+    border-radius: 10px;
+}
 
-        .main-action-btn {
-            width: 100%;
-            @include flex-center;
-            gap: 0.65rem;
-            padding: 1rem;
-            border-radius: $radius-sm;
-            border: none;
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: white;
-            cursor: pointer;
-            transition: all 0.25s;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+// ─────────────────────────────────────────────────────────────
+//  Trigger Input
+// ─────────────────────────────────────────────────────────────
+.ou-trigger-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
-            &.start {
-                background: linear-gradient(135deg, #007bff, #0056b3);
-                box-shadow: 0 6px 18px rgba($primary, 0.35);
-            }
+.ou-digit-box {
+    position: relative;
+    width: 52px;
 
-            &.stop {
-                background: linear-gradient(135deg, #dc3545, #b02a37);
-                box-shadow: 0 6px 18px rgba($danger, 0.35);
-            }
-
-            &:disabled {
-                background: #9ca3af;
-                box-shadow: none;
-                cursor: not-allowed;
-            }
-        }
-    }
-
-    // ── Monitor Panel ─────────────────────────────────────────
-    .monitor-panel {
-        @include panel-base;
-        height: 520px;
-        display: flex;
-        flex-direction: column;
-
-        @media (max-width: 1100px) { height: 380px; }
-        @media (max-width: 640px) { height: 280px; }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid $border-color;
-
-            .header-title {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-weight: 700;
-                font-size: 1rem;
-                color: $text-main;
-            }
-
-            .icon-btn {
-                @include flex-center;
-                padding: 0.45rem;
-                border-radius: 6px;
-                border: 1px solid $border-color;
-                background: white;
-                color: $text-muted;
-                cursor: pointer;
-                transition: all 0.2s;
-
-                &:hover { background: #fff0f0; color: $danger; border-color: $danger; }
-            }
-        }
-
-        .monitor-content {
-            flex: 1;
-            background: #0f1117;
-            border-radius: 8px;
-            padding: 0.85rem 1rem;
-            overflow-y: auto;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-
-            &::-webkit-scrollbar { width: 4px; }
-            &::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 4px; }
-
-            .empty-state {
-                height: 100%;
-                @include flex-center;
-                flex-direction: column;
-                color: #374151;
-                gap: 0.75rem;
-                text-align: center;
-
-                svg { opacity: 0.5; }
-                p { font-size: 0.85rem; font-weight: 500; }
-            }
-
-            .log-list {
-                display: flex;
-                flex-direction: column;
-                gap: 0.35rem;
-
-                .log-item {
-                    font-size: 0.8rem;
-                    line-height: 1.5;
-
-                    .log-text { color: #a3b3cc; word-break: break-all; }
-                }
-            }
-        }
-    }
-
-    // ── Guide Modal ───────────────────────────────────────────
-    .guide-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
+    input {
         width: 100%;
+        padding: 0.6rem 0.25rem;
+        text-align: center;
+        font-weight: 800;
+        font-size: 1rem;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid $border-hi;
+        border-radius: 8px;
+        color: $text;
+        transition: all 0.2s;
+
+        &:focus { outline: none; border-color: $blue; box-shadow: 0 0 0 2px rgba($blue, 0.15); }
+        &:disabled { opacity: 0.35; cursor: not-allowed; }
+    }
+}
+
+.ou-led {
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid $surface;
+    transition: all 0.2s;
+
+    &.on {
+        background: $green;
+        box-shadow: 0 0 8px rgba($green, 0.8);
+    }
+}
+
+.ou-chip {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid $border-hi;
+    background: rgba(255,255,255,0.04);
+    color: $muted;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+
+    &.active { background: $blue; color: #fff; border-color: $blue; box-shadow: 0 2px 8px rgba($blue, 0.35); }
+    &:disabled { opacity: 0.35; cursor: not-allowed; }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Toggle Switch
+// ─────────────────────────────────────────────────────────────
+.ou-toggle {
+    position: relative;
+    width: 38px; height: 22px;
+    border-radius: 50px;
+    border: none;
+    background: rgba(255,255,255,0.08);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.25s;
+
+    span {
+        position: absolute;
+        top: 3px; left: 3px;
+        width: 16px; height: 16px;
+        border-radius: 50%;
+        background: $muted;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    &.on {
+        background: rgba($blue, 0.25);
+        span { left: 19px; background: $blue; box-shadow: 0 0 8px rgba($blue, 0.5); }
+    }
+
+    &:disabled { opacity: 0.35; cursor: not-allowed; }
+}
+
+.ou-toggle-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: $muted;
+    letter-spacing: 0.4px;
+
+    &.on { color: $blue; }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  CTA Button
+// ─────────────────────────────────────────────────────────────
+.ou-cta {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    width: calc(100% - 2.2rem);
+    margin: 1rem 1.1rem 1.1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--ac, $blue);
+    background: rgba(var(--ac-raw, 59, 130, 246), 0.12);
+    color: var(--ac, $blue);
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.25s;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--ac, $blue);
+        opacity: 0;
+        transition: opacity 0.25s;
+    }
+
+    &:hover:not(:disabled) {
+        box-shadow: 0 0 24px var(--ag, rgba(59,130,246,0.3));
+        &::before { opacity: 0.12; }
+    }
+
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    &__icon, &__text { position: relative; z-index: 1; }
+
+    &__pulse {
+        position: absolute;
+        top: 50%; right: 1rem;
+        transform: translateY(-50%);
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--ac, $blue);
+        box-shadow: 0 0 0 0 var(--ag, rgba(59,130,246,0.4));
+        animation: ctaPulse 1.4s ease-in-out infinite;
+    }
+
+    &.stop {
+        border-color: $red;
+        color: $red;
+        --ac: #{$red};
+        --ag: rgba(239,68,68,0.35);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Monitor Panel
+// ─────────────────────────────────────────────────────────────
+.ou-monitor {
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    height: 540px;
+    overflow: hidden;
+
+    @media (max-width: 1100px) { height: 360px; }
+
+    &__bar {
+        @include row;
+        justify-content: space-between;
+        padding: 0.8rem 1rem;
+        border-bottom: 1px solid $border;
+        background: rgba(255,255,255,0.02);
+        flex-shrink: 0;
+    }
+
+    &__title {
+        @include row;
+        gap: 0.45rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: $muted;
+    }
+
+    &__clear {
+        @include row;
+        padding: 0.35rem;
+        border-radius: 6px;
+        border: 1px solid $border;
+        background: transparent;
+        color: $muted;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover { background: rgba($red, 0.1); color: $red; border-color: rgba($red, 0.3); }
+    }
+
+    &__body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.75rem;
+        background: #07090f;
+
+        &::-webkit-scrollbar { width: 4px; }
+        &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 4px; }
+    }
+
+    &__empty {
         height: 100%;
-        background: rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(4px);
-        @include flex-center;
-        z-index: 1000;
-        padding: 1rem;
-    }
-
-    .guide-modal-content {
-        background: white;
-        padding: 2rem 2rem 1.5rem;
-        border-radius: $radius-lg;
-        width: 100%;
-        max-width: 640px;
-        max-height: 88vh;
-        position: relative;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
         display: flex;
         flex-direction: column;
-
-        @media (max-width: 640px) { padding: 1.25rem; }
-
-        .guide-close-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            @include flex-center;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background: #f3f4f6;
-            font-size: 1.3rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            line-height: 1;
-
-            &:hover { background: #e5e7eb; transform: rotate(90deg); }
-        }
-
-        h2 {
-            display: flex;
-            align-items: center;
-            margin: 0 0 1.25rem;
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: $text-main;
-        }
-
-        .guide-scroll-area {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 0.4rem;
-
-            &::-webkit-scrollbar { width: 4px; }
-            &::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
-
-            .guide-section {
-                margin-bottom: 1.5rem;
-
-                h3 {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    font-size: 0.9rem;
-                    font-weight: 700;
-                    color: $primary;
-                    margin-bottom: 0.6rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.4px;
-                }
-
-                ul {
-                    list-style: none;
-                    padding: 0;
-                    margin: 0;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.4rem;
-
-                    li {
-                        padding: 0.65rem 0.85rem;
-                        background: #f9fafb;
-                        border-radius: 6px;
-                        font-size: 0.85rem;
-                        line-height: 1.5;
-                        color: $text-main;
-                        border-left: 3px solid #e5e7eb;
-
-                        strong {
-                            color: $text-main;
-                            font-weight: 700;
-                        }
-                    }
-                }
-            }
-        }
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        color: rgba(255,255,255,0.12);
+        font-size: 0.82rem;
+        font-weight: 500;
     }
+
+    &__logs {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+}
+
+.ou-log {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.1s;
+
+    &:hover { background: rgba(255,255,255,0.03); }
+
+    &__bar {
+        width: 2px;
+        height: 100%;
+        min-height: 14px;
+        border-radius: 2px;
+        background: rgba(255,255,255,0.1);
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    &__text {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        font-size: 0.76rem;
+        line-height: 1.5;
+        color: #7a90b8;
+        word-break: break-all;
+    }
+
+    &.win {
+        .ou-log__bar { background: $green; }
+        .ou-log__text { color: $green; }
+    }
+
+    &.loss {
+        .ou-log__bar { background: $red; }
+        .ou-log__text { color: #f87171; }
+    }
+
+    &.pattern {
+        .ou-log__bar { background: $purple; }
+        .ou-log__text { color: #c084fc; }
+        background: rgba($purple, 0.05);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Animations
+// ─────────────────────────────────────────────────────────────
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes ctaPulse {
+    0%   { box-shadow: 0 0 0 0 var(--ag, rgba(59,130,246,0.4)); }
+    70%  { box-shadow: 0 0 0 8px rgba(0,0,0,0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
 }
