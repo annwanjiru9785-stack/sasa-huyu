@@ -274,9 +274,6 @@ export default class OverUnderStore {
             this.is_processing_round = false;
             this.differs_barrier_digit = null;
             this.is_differs_recovery_mode = false;
-            // Reset Exaggerated Pushback surge tracker so each run starts clean
-            (this as any)._surge_count = 0;
-            (this as any)._surge_direction = null;
         }
     }
 
@@ -570,65 +567,49 @@ export default class OverUnderStore {
     analyzeAndExecuteDiffers() {
         if (this._tick_prices.length < 5 || this.is_purchasing) return;
 
-        // --- Exaggerated Pushback Strategy ---
-        // Pattern: 3+ consecutive ticks moving in one direction (surge),
-        // followed by a single reversal tick (the "rejection").
-        // Action: immediately fire DIGITDIFF using the rejection tick's last digit.
-
-        // Lazy-initialise per-run tracking state
-        if ((this as any)._surge_count === undefined) {
-            (this as any)._surge_count = 0;
-            (this as any)._surge_direction = null;
-        }
+        // --- Exaggerated Pushback Strategy (stateless) ---
+        // On every tick, look directly at the price history to verify the pattern:
+        //   1. The current tick reversed direction vs the previous tick.
+        //   2. The ticks BEFORE that were ALL moving in the opposite (surge) direction,
+        //      with 3+ consecutive same-direction ticks in a row (no mixing allowed).
 
         const prices = this._tick_prices;
-        const prev_price = prices[prices.length - 2];
-        const curr_price = prices[prices.length - 1];
+        const n = prices.length;
 
-        // No price movement this tick – nothing to track
+        const curr_price = prices[n - 1];
+        const prev_price = prices[n - 2];
+
+        // No movement on this tick – nothing to evaluate
         if (curr_price === prev_price) return;
 
         const curr_direction: 'up' | 'down' = curr_price > prev_price ? 'up' : 'down';
-        const prev_direction: string | null = (this as any)._surge_direction;
+        const surge_direction: 'up' | 'down' = curr_direction === 'up' ? 'down' : 'up';
 
-        // First tick seen – just seed the tracker
-        if (prev_direction === null) {
-            (this as any)._surge_direction = curr_direction;
-            (this as any)._surge_count = 1;
-            return;
+        // Walk backwards through price history counting consecutive surge-direction ticks.
+        // Stop immediately if any tick moves in the wrong direction (mixed = invalid).
+        let surge_count = 0;
+        for (let i = n - 2; i >= 1; i--) {
+            if (prices[i] === prices[i - 1]) continue; // flat tick – skip but don't break
+            const tick_dir: 'up' | 'down' = prices[i] > prices[i - 1] ? 'up' : 'down';
+            if (tick_dir === surge_direction) {
+                surge_count++;
+            } else {
+                break; // direction mixed – surge ended here
+            }
         }
 
-        if (curr_direction === prev_direction) {
-            // Surge continues in the same direction
-            (this as any)._surge_count++;
-            this.addLog(`Differs: Surge ${curr_direction} x${(this as any)._surge_count}`);
+        if (surge_count >= 3) {
+            const rejection_digit = this.last_digit;
+            this.differs_barrier_digit = rejection_digit;
+
+            this.addLog(
+                `Differs: PATTERN! ${surge_count}x ${surge_direction} surge → ` +
+                `${curr_direction} reversal. Digit ${rejection_digit}. DIFFER!`
+            );
+
+            this.executeTrade('DIGITDIFF', String(rejection_digit));
         } else {
-            // Direction reversed – check if the preceding surge was strong enough
-            const surge_count: number = (this as any)._surge_count;
-
-            if (surge_count >= 3) {
-                // Exaggerated Pushback confirmed:
-                // surge_count ticks went one way, this tick snapped back.
-                const rejection_digit = this.last_digit;
-                this.differs_barrier_digit = rejection_digit; // kept for recovery reference
-
-                this.addLog(
-                    `Differs: PATTERN! ${surge_count}x ${prev_direction} surge → ` +
-                    `${curr_direction} rejection. Digit ${rejection_digit}. DIFFER!`
-                );
-
-                // Reset tracker – start the next surge from this reversal tick
-                (this as any)._surge_count = 1;
-                (this as any)._surge_direction = curr_direction;
-
-                // Fire the trade immediately
-                this.executeTrade('DIGITDIFF', String(rejection_digit));
-            } else {
-                // Surge too short – reset and begin tracking the new direction
-                this.addLog(`Differs: Weak surge (${surge_count}x ${prev_direction}), resetting to ${curr_direction}.`);
-                (this as any)._surge_count = 1;
-                (this as any)._surge_direction = curr_direction;
-            }
+            this.addLog(`Differs: Watching... ${surge_count}x ${surge_direction} (need 3+ consecutive)`);
         }
     }
 
