@@ -207,7 +207,7 @@ export default class OverUnderStore {
         if (this.analysis_queue.length > 0) {
             this.current_analyzing_symbol = this.analysis_queue.shift();
             if (this.current_analyzing_symbol) {
-                this.ws?.send(JSON.stringify({ ticks_history: this.current_analyzing_symbol, count: 50, end: 'latest', style: 'ticks' }));
+                this.ws?.send(JSON.stringify({ ticks_history: this.current_analyzing_symbol, count: 100, end: 'latest', style: 'ticks' }));
             }
         } else {
             this.is_analyzing_volatility = false;
