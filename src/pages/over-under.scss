@@ -1,749 +1,530 @@
-// ─────────────────────────────────────────────────────────────
-//  Over / Under Terminal  —  Elite Dark Trading UI
-//  All font sizes in px to bypass the 62.5% root font-size.
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+//  Over / Under Terminal  ·  Professional Trading UI
+//  All font-sizes use px to bypass 62.5% root font-size.
+// ═══════════════════════════════════════════════════════════
 
-// ── Palette ──────────────────────────────────────────────────
-$bg:       #050b16;
-$surface:  #09111f;
-$card:     #0d1828;
-$edge:     #121f33;
-$border:   rgba(255,255,255,0.07);
-$border2:  rgba(255,255,255,0.13);
-$text:     #e2ecf8;
-$sub:      #8baac8;
-$muted:    #3d5470;
-$blue:     #3b82f6;
-$purple:   #a855f7;
-$green:    #10b981;
-$red:      #ef4444;
-$amber:    #f59e0b;
-$orange:   #f97316;
-$cyan:     #06b6d4;
+// ── Tokens ──────────────────────────────────────────────────
+$bg0:     #04080f;
+$bg1:     #070e1c;
+$bg2:     #0b1526;
+$bg3:     #111f38;
+$b0:      rgba(255,255,255,0.05);
+$b1:      rgba(255,255,255,0.10);
+$b2:      rgba(255,255,255,0.16);
+$txt:     #dceaf8;
+$sub:     #7fa0be;
+$dim:     #3a526b;
+$blue:    #3b82f6;
+$purple:  #a855f7;
+$green:   #10b981;
+$red:     #ef4444;
+$amber:   #f59e0b;
+$orange:  #f97316;
+$cyan:    #06b6d4;
 
-// ── Root ─────────────────────────────────────────────────────
+// ── Root ────────────────────────────────────────────────────
 .ou-root {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 20px 20px 40px;
-    background: $bg;
-    color: $text;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 14px;           // explicit px — ignores 62.5% root
+    gap: 14px;
+    padding: 16px;
+    background: $bg0;
+    color: $txt;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;           // explicit — bypasses 62.5% rem
     line-height: 1.5;
-    position: relative;
     min-height: 100%;
-    width: 100%;
     box-sizing: border-box;
+    position: relative;
 
     *, *::before, *::after { box-sizing: border-box; }
 
-    // Dot grid
+    // subtle dot grid
     &::before {
         content: '';
-        position: fixed; inset: 0;
-        background-image: radial-gradient(rgba(59,130,246,0.05) 1px, transparent 1px);
-        background-size: 26px 26px;
-        pointer-events: none;
-        z-index: 0;
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background-image: radial-gradient(rgba(59,130,246,0.04) 1px, transparent 1px);
+        background-size: 24px 24px;
     }
     > * { position: relative; z-index: 1; }
-
-    @media (max-width: 600px) { padding: 14px 12px 32px; gap: 12px; }
 }
 
-// ── Guide FAB ────────────────────────────────────────────────
+// ── Guide FAB ───────────────────────────────────────────────
 .ou-fab {
+    position: fixed; bottom: 18px; right: 18px; z-index: 900;
     display: flex; align-items: center; gap: 6px;
-    position: fixed; bottom: 20px; right: 20px;
-    padding: 8px 16px;
-    border-radius: 50px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid $border2;
-    color: $sub;
-    font-size: 13px; font-weight: 600;
-    cursor: pointer;
-    z-index: 300;
+    padding: 7px 14px; border-radius: 50px;
+    background: rgba(255,255,255,0.06); border: 1px solid $b1;
+    color: $sub; font-size: 13px; font-weight: 600;
+    cursor: pointer; backdrop-filter: blur(10px);
     transition: all 0.2s;
-    backdrop-filter: blur(10px);
 
-    &:hover { background: rgba(255,255,255,0.1); color: $text; }
-
-    @media (max-width: 600px) { span { display: none; } padding: 10px; border-radius: 50%; }
+    &:hover { background: rgba(255,255,255,0.1); color: $txt; }
+    @media (max-width: 500px) { span { display: none; } padding: 10px; border-radius: 50%; }
 }
 
 // ── Guide Modal ──────────────────────────────────────────────
 .ou-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(8px);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 1000; padding: 16px;
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
 }
 
 .ou-modal {
-    background: $card;
-    border: 1px solid $border2;
-    border-radius: 18px;
-    width: 100%; max-width: 600px; max-height: 88vh;
+    background: $bg2; border: 1px solid $b1; border-radius: 16px;
+    width: 100%; max-width: 580px; max-height: 86vh;
     display: flex; flex-direction: column;
-    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
-    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6); overflow: hidden;
 
     &__head {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 18px 22px;
-        border-bottom: 1px solid $border;
-        font-size: 15px; font-weight: 700; color: $text;
+        padding: 16px 20px; border-bottom: 1px solid $b0;
+        font-size: 15px; font-weight: 700; color: $txt;
 
         button {
             width: 28px; height: 28px; border-radius: 50%;
-            border: 1px solid $border; background: rgba(255,255,255,0.04);
-            color: $sub; font-size: 18px; cursor: pointer;
+            border: 1px solid $b1; background: rgba(255,255,255,0.04);
+            color: $sub; font-size: 18px; line-height: 1;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-            line-height: 1;
-
-            &:hover { background: rgba(255,255,255,0.1); color: $text; transform: rotate(90deg); }
+            cursor: pointer; transition: all 0.2s;
+            &:hover { background: rgba(255,255,255,0.1); color: $txt; transform: rotate(90deg); }
         }
     }
 
     &__body {
-        flex: 1; overflow-y: auto;
-        padding: 20px 22px;
-        display: flex; flex-direction: column; gap: 18px;
-
-        &::-webkit-scrollbar { width: 4px; }
-        &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        flex: 1; overflow-y: auto; padding: 18px 20px;
+        display: flex; flex-direction: column; gap: 16px;
+        &::-webkit-scrollbar { width: 3px; }
+        &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
     }
 
-    &__section { display: flex; flex-direction: column; gap: 8px; }
+    &__sec { display: flex; flex-direction: column; gap: 7px; }
 
     &__sh {
-        font-size: 11px; font-weight: 800; letter-spacing: 1px;
-        text-transform: uppercase; margin: 0;
-
-        &.blue   { color: $blue; }
-        &.purple { color: $purple; }
-        &.green  { color: $green; }
-        &.orange { color: $orange; }
-        &.red    { color: $red; }
+        font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+        &--blue   { color: $blue; }
+        &--purple { color: $purple; }
+        &--green  { color: $green; }
+        &--orange { color: $orange; }
+        &--red    { color: $red; }
     }
 
     p {
-        font-size: 13px; line-height: 1.65; color: #7a96b5; margin: 0;
-        padding: 10px 14px;
-        background: rgba(255,255,255,0.025);
-        border-radius: 8px;
-        border-left: 2px solid rgba(255,255,255,0.07);
-
-        strong { color: $text; }
+        font-size: 13px; line-height: 1.6; color: #6a8eab; margin: 0;
+        padding: 9px 12px; border-radius: 7px;
+        background: rgba(255,255,255,0.02); border-left: 2px solid rgba(255,255,255,0.06);
+        b { color: $txt; font-weight: 600; }
     }
 }
 
 // ── Header ───────────────────────────────────────────────────
 .ou-header {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px;
-    padding: 14px 20px;
-    background: $surface;
-    border: 1px solid $border2;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 12px 16px;
+    background: $bg1; border: 1px solid $b1; border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3); overflow: hidden; position: relative;
 
     &::before {
         content: '';
-        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        position: absolute; top: 0; left: 0; right: 0; height: 2px;
         background: linear-gradient(90deg, $blue 0%, $purple 55%, $cyan 100%);
     }
 
-    &__brand { display: flex; align-items: center; gap: 14px; }
+    &__left { display: flex; align-items: center; gap: 12px; }
 
     &__icon {
-        width: 40px; height: 40px; border-radius: 10px;
-        background: linear-gradient(135deg, rgba($blue,0.25), rgba($purple,0.2));
-        border: 1px solid rgba($blue,0.3);
-        display: flex; align-items: center; justify-content: center;
-        color: $blue; flex-shrink: 0;
+        width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+        background: linear-gradient(135deg,rgba($blue,.22),rgba($purple,.16));
+        border: 1px solid rgba($blue,.28);
+        display: flex; align-items: center; justify-content: center; color: $blue;
     }
 
     &__title {
-        font-size: 17px; font-weight: 800;
-        background: linear-gradient(120deg, $text 0%, rgba($text,0.65) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        font-size: 16px; font-weight: 800;
+        background: linear-gradient(110deg, $txt, rgba($txt,.6));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
 
-    &__sub {
-        font-size: 12px; color: $muted; font-weight: 500; margin-top: 1px;
-    }
+    &__sub { font-size: 11px; color: $dim; margin-top: 1px; }
 }
 
-// ── Status pill ───────────────────────────────────────────────
-.ou-pill {
+// ── Status badge ─────────────────────────────────────────────
+.ou-status {
     display: flex; align-items: center; gap: 7px;
-    padding: 6px 13px; border-radius: 50px;
-    font-size: 13px; font-weight: 700; letter-spacing: 0.3px;
-    border: 1px solid $border;
-    background: rgba(255,255,255,0.04);
+    padding: 5px 12px; border-radius: 50px;
+    font-size: 12px; font-weight: 700;
+    border: 1px solid $b0; background: rgba(255,255,255,0.03);
     white-space: nowrap;
 
-    &__dot { width: 7px; height: 7px; border-radius: 50%; display: block; }
+    &__dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-    &--ok {
-        color: $green; border-color: rgba($green,0.25); background: rgba($green,0.08);
-        .ou-pill__dot { background: $green; box-shadow: 0 0 7px $green; }
-    }
-    &--live {
-        color: $amber; border-color: rgba($amber,0.2); background: rgba($amber,0.07);
-        .ou-pill__dot { background: $amber; box-shadow: 0 0 7px $amber; animation: dot-pulse 1.3s ease-in-out infinite; }
-    }
-    &--pulse {
-        color: $blue; border-color: rgba($blue,0.2); background: rgba($blue,0.07);
-        .ou-pill__dot { background: $blue; box-shadow: 0 0 7px $blue; animation: dot-pulse 1s ease-in-out infinite; }
-    }
-    &--off { color: $muted; .ou-pill__dot { background: $muted; } }
+    &--ok   { color: $green; border-color: rgba($green,.2); .ou-status__dot { background: $green; box-shadow: 0 0 7px $green; } }
+    &--live { color: $amber; border-color: rgba($amber,.2); .ou-status__dot { background: $amber; box-shadow: 0 0 7px $amber; animation: blink 1.3s ease-in-out infinite; } }
+    &--pulse{ color: $blue; border-color: rgba($blue,.2);  .ou-status__dot { background: $blue;  box-shadow: 0 0 7px $blue;  animation: blink 1s ease-in-out infinite; } }
+    &--off  { color: $dim; .ou-status__dot { background: $dim; } }
 }
 
 // ── Heatmap ──────────────────────────────────────────────────
 .ou-heatmap {
     display: grid;
     grid-template-columns: repeat(10, 1fr);
-    gap: 8px;
-
-    @media (max-width: 800px) { grid-template-columns: repeat(5, 1fr); }
-    @media (max-width: 440px) { gap: 5px; }
+    gap: 6px;
+    @media (max-width: 700px) { grid-template-columns: repeat(5, 1fr); }
 }
 
 .ou-cell {
     display: flex; flex-direction: column; align-items: center;
-    gap: 0; padding: 8px 4px 8px;
-    background: $surface;
-    border: 1px solid $border;
-    border-radius: 10px;
-    cursor: default;
-    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
-    position: relative; overflow: hidden;
+    padding: 7px 4px 8px; gap: 0;
+    background: $bg1; border: 1px solid $b0; border-radius: 9px;
+    cursor: default; position: relative; overflow: hidden;
+    transition: border-color .2s, box-shadow .2s;
 
-    &__top { height: 18px; display: flex; align-items: center; justify-content: center; }
-
-    &__digit {
-        font-size: 22px; font-weight: 900; color: $text;
-        letter-spacing: -1px; line-height: 1; margin: 4px 0 6px;
-
-        @media (max-width: 440px) { font-size: 17px; }
+    &__badge {
+        font-size: 8px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase;
+        height: 14px; display: flex; align-items: center;
+        &.hot { background: rgba($green,.2); color: $green; padding: 0 5px; border-radius: 3px; }
+        &.cold { background: rgba($red,.2);  color: $red;   padding: 0 5px; border-radius: 3px; }
     }
 
-    &__track {
-        width: 100%; height: 50px;
-        background: rgba(255,255,255,0.035);
-        border-radius: 5px; position: relative; overflow: hidden;
+    &__num {
+        font-size: 20px; font-weight: 900; color: $txt;
+        line-height: 1; margin: 3px 0 5px;
+        @media (max-width: 500px) { font-size: 15px; }
+    }
 
-        @media (max-width: 440px) { height: 30px; }
+    &__bar {
+        width: 100%; height: 44px;
+        background: rgba(255,255,255,0.03); border-radius: 4px;
+        position: relative; overflow: hidden;
+        @media (max-width: 500px) { height: 28px; }
     }
 
     &__fill {
         position: absolute; bottom: 0; left: 0; right: 0;
-        border-radius: 5px 5px 0 0; min-height: 3px;
+        border-radius: 4px 4px 0 0;
     }
 
-    &__pct {
-        font-size: 12px; font-weight: 700; color: $muted; margin-top: 5px;
-    }
+    &__pct { font-size: 11px; font-weight: 700; color: $dim; margin-top: 4px; }
 
-    // States
     &--active {
-        border-color: rgba($blue,0.6);
-        background: rgba($blue,0.07);
-        box-shadow: 0 0 0 1px rgba($blue,0.2), 0 0 20px rgba($blue,0.1);
-        .ou-cell__digit { color: $blue; }
-
-        &::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: $blue; box-shadow: 0 0 10px $blue; }
+        border-color: rgba($blue,.55);
+        background: rgba($blue,.06);
+        box-shadow: 0 0 0 1px rgba($blue,.2), 0 0 16px rgba($blue,.08);
+        .ou-cell__num { color: $blue; }
+        &::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: $blue; box-shadow: 0 0 8px $blue; }
     }
 
     &--hot {
-        border-color: rgba($green,0.45);
-        background: rgba($green,0.06);
-        .ou-cell__digit { color: $green; }
-
-        &::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: $green; box-shadow: 0 0 10px $green; }
+        border-color: rgba($green,.4);
+        .ou-cell__num { color: $green; }
+        &::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: $green; box-shadow: 0 0 8px $green; }
     }
 
     &--cold {
-        border-color: rgba($red,0.45);
-        background: rgba($red,0.06);
-        .ou-cell__digit { color: $red; }
-
-        &::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: $red; box-shadow: 0 0 10px $red; }
+        border-color: rgba($red,.4);
+        .ou-cell__num { color: $red; }
+        &::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: $red; box-shadow: 0 0 8px $red; }
     }
 }
 
-.ou-badge {
-    font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
-    text-transform: uppercase;
-    padding: 1px 6px; border-radius: 4px;
-
-    &--hot  { background: rgba($green,0.2); color: $green; }
-    &--cold { background: rgba($red,0.2); color: $red; }
-    &--empty { display: block; width: 20px; height: 14px; } // spacer
-}
-
-// ── Main Layout ───────────────────────────────────────────────
-.ou-layout {
+// ── Body (two-column) ─────────────────────────────────────────
+.ou-body {
     display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 16px;
+    grid-template-columns: 360px 1fr;
+    gap: 14px;
     align-items: start;
 
-    @media (max-width: 1100px) { grid-template-columns: 380px 1fr; }
-    @media (max-width: 900px)  { grid-template-columns: 1fr; }
+    @media (max-width: 960px)  { grid-template-columns: 320px 1fr; }
+    @media (max-width: 760px)  { grid-template-columns: 1fr; }
 }
 
-// ── Config Panel ─────────────────────────────────────────────
-.ou-config {
-    background: $surface;
-    border: 1px solid $border2;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    position: relative;
+// ── Config Panel ──────────────────────────────────────────────
+.ou-panel {
+    background: $bg1; border: 1px solid $b1; border-radius: 14px;
+    overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,0.28); position: relative;
 
-    // Gradient top strip
     &::before {
         content: '';
-        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 1;
         background: linear-gradient(90deg, $blue, $purple, $orange);
-        z-index: 1;
     }
 
-    &__head {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 14px 18px 12px;
-        border-bottom: 1px solid $border;
-        background: rgba(255,255,255,0.015);
-        margin-top: 3px;
-    }
-
-    &__head-title {
+    &__title {
         display: flex; align-items: center; gap: 8px;
-        font-size: 14px; font-weight: 700; color: $text;
+        padding: 12px 16px; padding-top: 14px;
+        border-bottom: 1px solid $b0;
+        background: rgba(255,255,255,0.015);
+        font-size: 13px; font-weight: 700; color: $sub;
         svg { color: $blue; }
     }
-
-    &__head-strategy {
-        display: flex; align-items: center; gap: 5px;
-        font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
-    }
 }
 
-// ── Sections ─────────────────────────────────────────────────
-.ou-section {
-    padding: 14px 18px;
-    border-bottom: 1px solid $border;
+// ── Section rows ─────────────────────────────────────────────
+.ou-row-wrap {
+    padding: 11px 14px;
+    border-bottom: 1px solid $b0;
 
-    &:last-child { border-bottom: none; }
-
-    &__label {
-        display: flex; align-items: center; gap: 6px;
-        font-size: 11px; font-weight: 800; letter-spacing: 0.9px;
-        text-transform: uppercase; color: $muted;
-        margin-bottom: 12px;
-        svg { color: $blue; }
-    }
-
-    &__row {
-        display: flex; gap: 10px; align-items: flex-end;
-
-        @media (max-width: 500px) { flex-wrap: wrap; }
-    }
-
-    &--collapse {
-        padding-bottom: 0;
-
-        &:last-child { border-bottom: none; }
-    }
+    &--last { border-bottom: none; }
 }
 
-.ou-collapse-btn {
-    width: 100%; display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 18px;
-    background: none; border: none; cursor: pointer;
-    font-size: 11px; font-weight: 800; letter-spacing: 0.9px;
-    text-transform: uppercase; color: $muted;
-    transition: color 0.2s, background 0.2s;
-
-    &:hover { color: $text; background: rgba(255,255,255,0.02); }
-
-    span { display: flex; align-items: center; gap: 6px; }
-    svg { color: inherit; }
+.ou-row-label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px;
+    text-transform: uppercase; color: $dim; margin-bottom: 9px;
+    svg { color: $blue; flex-shrink: 0; }
 }
 
-// ── Fields ───────────────────────────────────────────────────
-.ou-field {
-    display: flex; flex-direction: column; gap: 7px;
+.ou-row-fields {
+    display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap;
+}
+
+// ── Individual field ─────────────────────────────────────────
+.ou-f {
+    display: flex; flex-direction: column; gap: 5px;
     min-width: 0;
-
     &--grow { flex: 1; }
 }
 
-.ou-label {
-    font-size: 11px; font-weight: 700; letter-spacing: 0.7px;
-    text-transform: uppercase; color: $muted;
-    white-space: nowrap;
+.ou-fl {
+    font-size: 11px; font-weight: 700; letter-spacing: .5px;
+    text-transform: uppercase; color: $sub; white-space: nowrap;
 }
 
-.ou-input,
-.ou-select {
-    width: 100%;
-    padding: 10px 12px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid $border2;
-    border-radius: 9px;
-    color: $text;
-    font-size: 14px; font-family: inherit;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    appearance: none;
+// ── Inputs & selects ─────────────────────────────────────────
+.ou-inp,
+.ou-sel {
+    height: 36px;
+    padding: 0 10px;
+    background: rgba(255,255,255,0.04); border: 1px solid $b1;
+    border-radius: 8px; color: $txt;
+    font-size: 14px; font-family: inherit; font-weight: 500;
+    transition: border-color .18s, box-shadow .18s;
+    appearance: none; -webkit-appearance: none;
 
-    &::placeholder { color: $muted; }
-
-    &:focus {
-        outline: none;
-        border-color: rgba($blue,0.6);
-        box-shadow: 0 0 0 3px rgba($blue,0.12);
-        background: rgba($blue,0.04);
-    }
-
-    &:disabled { opacity: 0.38; cursor: not-allowed; }
-    option { background: $card; color: $text; }
+    &:focus { outline: none; border-color: rgba($blue,.55); box-shadow: 0 0 0 3px rgba($blue,.12); }
+    &:disabled { opacity: .38; cursor: not-allowed; }
+    option { background: $bg2; color: $txt; }
 }
 
-.ou-select {
-    cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%233d5470' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    padding-right: 28px;
+.ou-inp { width: 80px; text-align: center; font-weight: 700; }
+
+.ou-sel {
+    width: 100%; cursor: pointer; padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%233a526b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 9px center;
+
+    &--strat {
+        font-weight: 700; background-color: rgba(255,255,255,0.04);
+    }
 }
 
-// ── Strategy Grid ─────────────────────────────────────────────
-.ou-strat-grid {
-    display: flex; flex-direction: column; gap: 6px;
+// ── Strategy info badge ──────────────────────────────────────
+.ou-strat-info {
+    display: flex; align-items: center; gap: 7px;
+    margin-top: 8px;
+    padding: 7px 10px; border-radius: 7px;
+    background: rgba(255,255,255,0.025);
+    border-left: 2px solid var(--c, #{$blue});
+    font-size: 12px; color: $sub; line-height: 1.4;
+
+    &__dot {
+        width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+        background: var(--c, #{$blue}); box-shadow: 0 0 7px var(--c, #{$blue});
+    }
 }
 
-.ou-strat {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid $border;
-    background: rgba(255,255,255,0.02);
-    color: $sub;
-    cursor: pointer;
-    text-align: left;
-    width: 100%;
-    transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
-    position: relative; overflow: hidden;
+// ── Toggle switch ─────────────────────────────────────────────
+.ou-sw-row { display: flex; align-items: center; gap: 7px; }
 
-    &__icon {
-        width: 36px; height: 36px; border-radius: 9px;
-        background: rgba(255,255,255,0.05);
-        display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0; transition: all 0.2s;
-    }
+.ou-sw {
+    width: 40px; height: 22px; border-radius: 50px; border: none;
+    background: rgba(255,255,255,0.07); cursor: pointer; flex-shrink: 0;
+    position: relative; transition: background .22s;
 
-    &__name {
-        font-size: 14px; font-weight: 700; color: $text; line-height: 1.2;
-    }
-
-    &__desc {
-        font-size: 11px; color: $muted; margin-top: 2px;
-    }
-
-    &:hover:not(:disabled) {
-        border-color: rgba(255,255,255,0.15);
-        background: rgba(255,255,255,0.04);
-
-        .ou-strat__name { color: $text; }
-    }
-
-    &--active {
-        border-color: var(--sc, $blue);
-        background: linear-gradient(120deg, rgba(0,0,0,0) 0%, rgba(var(--sc-raw,59,130,246),0.1) 100%);
-        color: var(--sc, $blue);
-        box-shadow: 0 0 0 1px var(--sc, $blue), 0 6px 20px rgba(0,0,0,0.25);
-
-        &::before {
-            content: '';
-            position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-            background: var(--sc, $blue);
-            box-shadow: 0 0 10px var(--sc, $blue);
-        }
-
-        .ou-strat__icon {
-            background: var(--sc, $blue);
-            color: #fff;
-            box-shadow: 0 4px 14px var(--sg, rgba(59,130,246,0.5));
-        }
-
-        .ou-strat__name { color: var(--sc, $blue); }
-    }
-
-    &:disabled { opacity: 0.38; cursor: not-allowed; }
-}
-
-// ── Toggle ────────────────────────────────────────────────────
-.ou-toggle-row {
-    display: flex; align-items: center; gap: 9px;
-}
-
-.ou-toggle {
-    position: relative;
-    width: 44px; height: 24px;
-    border-radius: 50px; border: none;
-    background: rgba(255,255,255,0.08);
-    cursor: pointer; flex-shrink: 0;
-    transition: background 0.25s;
-
-    &__thumb {
-        position: absolute; top: 4px; left: 4px;
+    &__knob {
+        position: absolute; top: 3px; left: 3px;
         width: 16px; height: 16px; border-radius: 50%;
-        background: $muted;
-        transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-        box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-        display: block;
+        background: $dim; display: block;
+        transition: all .22s cubic-bezier(.4,0,.2,1);
+        box-shadow: 0 1px 4px rgba(0,0,0,.4);
     }
 
-    &.on {
-        background: rgba(var(--tc-raw, 59,130,246), 0.25);
-        background: rgba(59,130,246,0.25); // fallback
-        .ou-toggle__thumb {
-            left: 24px;
-            background: var(--tc, $blue);
-            box-shadow: 0 0 10px var(--tc, $blue);
-        }
+    &--on {
+        background: rgba(59,130,246,0.2);
+        .ou-sw__knob { left: 21px; background: var(--tc,#{$blue}); box-shadow: 0 0 8px var(--tc,#{$blue}); }
     }
 
-    &:disabled { opacity: 0.35; cursor: not-allowed; }
+    &:disabled { opacity: .35; cursor: not-allowed; }
 }
 
-.ou-toggle-label {
-    font-size: 13px; font-weight: 700; color: $muted; letter-spacing: 0.4px;
+.ou-sw-lbl {
+    font-size: 13px; font-weight: 700; color: $dim;
     &.on { color: $blue; }
 }
 
-// ── Trigger ───────────────────────────────────────────────────
-.ou-trigger-row {
-    display: flex; align-items: center; gap: 8px;
-}
+// ── Trigger digit box ─────────────────────────────────────────
+.ou-trig-row { display: flex; align-items: center; gap: 6px; }
 
 .ou-dbox {
-    position: relative; width: 58px;
+    position: relative; width: 50px;
 
     input {
-        width: 100%; padding: 10px 4px;
-        text-align: center; font-weight: 800; font-size: 16px;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid $border2; border-radius: 9px;
-        color: $text; transition: all 0.2s;
-        font-family: 'JetBrains Mono', monospace;
-
-        &:focus { outline: none; border-color: rgba($blue,0.6); box-shadow: 0 0 0 3px rgba($blue,0.12); }
-        &:disabled { opacity: 0.35; cursor: not-allowed; }
+        width: 100%; height: 36px; padding: 0; text-align: center;
+        font-size: 16px; font-weight: 900; font-family: 'JetBrains Mono', monospace;
+        background: rgba(255,255,255,0.05); border: 1px solid $b1; border-radius: 8px;
+        color: $txt; transition: all .18s;
+        &:focus { outline: none; border-color: rgba($blue,.55); box-shadow: 0 0 0 3px rgba($blue,.12); }
+        &:disabled { opacity: .35; cursor: not-allowed; }
+        // hide spinners
+        &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { -webkit-appearance: none; }
+        -moz-appearance: textfield;
     }
 }
 
 .ou-led {
     position: absolute; top: -4px; right: -4px;
-    width: 10px; height: 10px; border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    border: 2px solid $surface;
-    transition: all 0.25s;
-
-    &--on { background: $green; box-shadow: 0 0 10px rgba($green,0.9); }
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: 2px solid $bg1;
+    transition: all .2s;
+    &--on { background: $green; box-shadow: 0 0 9px rgba($green,.9); }
 }
 
 .ou-chip {
-    padding: 9px 14px; border-radius: 8px;
-    border: 1px solid $border2; background: rgba(255,255,255,0.04);
-    color: $muted; font-size: 12px; font-weight: 800; letter-spacing: 0.6px;
-    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    height: 36px; padding: 0 11px; border-radius: 7px;
+    border: 1px solid $b1; background: rgba(255,255,255,0.03);
+    color: $dim; font-size: 11px; font-weight: 800; letter-spacing: .5px;
+    cursor: pointer; transition: all .18s; white-space: nowrap;
 
-    &--on {
-        background: rgba($blue,0.18); color: $blue;
-        border-color: rgba($blue,0.5);
-        box-shadow: 0 0 12px rgba($blue,0.25);
-    }
+    &.on { background: rgba($blue,.15); color: $blue; border-color: rgba($blue,.45); box-shadow: 0 0 10px rgba($blue,.2); }
+    &:disabled { opacity: .35; cursor: not-allowed; }
+}
 
-    &:disabled { opacity: 0.35; cursor: not-allowed; }
+// ── Collapse button (recovery) ────────────────────────────────
+.ou-collapse {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 0; background: none; border: none; cursor: pointer;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px;
+    text-transform: uppercase; color: $dim; transition: color .2s;
+
+    span { display: flex; align-items: center; gap: 5px; }
+    svg { color: inherit; flex-shrink: 0; }
+
+    &:hover { color: $txt; }
 }
 
 // ── CTA ──────────────────────────────────────────────────────
-.ou-cta-wrap {
-    padding: 16px 18px 18px;
-}
+.ou-cta-wrap { padding: 13px 14px 14px; }
 
 .ou-cta {
-    position: relative;
-    display: flex; align-items: center; justify-content: center;
-    gap: 10px; width: 100%;
-    padding: 16px 20px;
-    border-radius: 12px;
-    border: 1px solid var(--ac, $blue);
-    background: linear-gradient(135deg, rgba(var(--ac-raw,59,130,246),0.2) 0%, rgba(var(--ac-raw,59,130,246),0.08) 100%);
-    color: var(--ac, $blue);
-    font-size: 15px; font-weight: 800; letter-spacing: 1.5px;
-    text-transform: uppercase; cursor: pointer;
-    overflow: hidden; transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: 100%; height: 46px;
+    border-radius: 10px; border: 1px solid var(--ac, #{$blue});
+    background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(59,130,246,.07));
+    color: var(--ac, #{$blue});
+    font-size: 14px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: all .22s cubic-bezier(.4,0,.2,1);
 
-    &::before {
-        content: ''; position: absolute; inset: 0;
-        background: var(--ac, $blue); opacity: 0; transition: opacity 0.25s;
-    }
+    &::before { content: ''; position: absolute; inset: 0; background: var(--ac,#{$blue}); opacity: 0; transition: opacity .2s; }
 
     &:hover:not(:disabled) {
-        box-shadow: 0 0 32px var(--ag, rgba(59,130,246,0.4)), 0 8px 24px rgba(0,0,0,0.3);
+        box-shadow: 0 0 28px var(--ag, rgba(59,130,246,.4)), 0 6px 20px rgba(0,0,0,.3);
         transform: translateY(-1px);
-        &::before { opacity: 0.1; }
+        &::before { opacity: .08; }
     }
 
-    &:active:not(:disabled) { transform: translateY(0); }
-    &:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    &:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
-    &__icon, &__label { position: relative; z-index: 1; }
-
-    &__label { font-size: 15px; font-weight: 800; letter-spacing: 2px; }
+    &__ico, &__txt { position: relative; z-index: 1; }
+    &__txt { font-size: 14px; font-weight: 800; letter-spacing: 2px; }
 
     &__pulse {
-        position: absolute; top: 50%; right: 16px;
-        transform: translateY(-50%);
-        width: 8px; height: 8px; border-radius: 50%;
-        background: var(--ac, $blue);
-        animation: cta-pulse 1.4s ease-in-out infinite;
-        z-index: 1;
+        position: absolute; top: 50%; right: 14px; transform: translateY(-50%);
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--ac, #{$blue}); z-index: 1;
+        animation: cta-blink 1.4s ease-in-out infinite;
     }
 
-    &--stop {
-        border-color: $red; color: $red;
-        background: linear-gradient(135deg, rgba($red,0.2) 0%, rgba($red,0.08) 100%);
-        --ac: #{$red}; --ag: rgba(239,68,68,0.4);
-    }
+    &--stop { border-color: $red; color: $red; background: linear-gradient(135deg, rgba($red,.18), rgba($red,.07)); }
 }
 
-.ou-spin { animation: spin 1s linear infinite; }
+.ou-spin { animation: spin .9s linear infinite; }
 
 // ── Monitor ──────────────────────────────────────────────────
 .ou-monitor {
-    background: $surface;
-    border: 1px solid $border2;
-    border-radius: 16px;
+    background: $bg1; border: 1px solid $b1; border-radius: 14px;
     display: flex; flex-direction: column;
-    min-height: 500px; max-height: 700px;
-    overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    position: sticky; top: 16px;
-    position: relative; // re-declare for ::before
+    min-height: 480px; max-height: 680px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.28); position: relative; overflow: hidden;
 
-    @media (max-width: 900px) { position: static; min-height: 320px; max-height: 400px; }
+    @media (max-width: 760px) { min-height: 300px; max-height: 380px; }
 
     &::before {
         content: '';
-        position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 1;
         background: linear-gradient(90deg, $green, $cyan);
-        z-index: 1;
     }
 
     &__head {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 13px 16px;
-        border-bottom: 1px solid $border;
+        padding: 12px 14px; padding-top: 14px;
+        border-bottom: 1px solid $b0;
         background: rgba(255,255,255,0.015);
-        margin-top: 3px; flex-shrink: 0;
+        flex-shrink: 0;
 
         > span {
-            display: flex; align-items: center; gap: 8px;
+            display: flex; align-items: center; gap: 7px;
             font-size: 13px; font-weight: 700; color: $green;
-            svg { color: $green; }
         }
     }
 
-    &__clear {
-        display: flex; align-items: center; justify-content: center;
-        width: 30px; height: 30px;
-        border-radius: 7px; border: 1px solid $border;
-        background: transparent; color: $muted; cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover { background: rgba($red,0.1); color: $red; border-color: rgba($red,0.3); }
+    &__clr {
+        width: 28px; height: 28px; border-radius: 7px;
+        border: 1px solid $b0; background: transparent;
+        color: $dim; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all .2s;
+        &:hover { background: rgba($red,.1); color: $red; border-color: rgba($red,.25); }
     }
 
     &__body {
-        flex: 1; overflow-y: auto;
-        padding: 10px;
-        background: #030710;
-
+        flex: 1; overflow-y: auto; padding: 8px; background: #020710;
         &::-webkit-scrollbar { width: 3px; }
-        &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 3px; }
     }
 
     &__empty {
-        height: 100%; min-height: 280px;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        gap: 10px; color: rgba(255,255,255,0.1);
-        font-size: 13px; font-weight: 500; letter-spacing: 0.3px;
+        height: 100%; min-height: 260px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 9px; color: rgba(255,255,255,.08);
+        font-size: 13px; letter-spacing: .3px;
     }
 
     &__logs { display: flex; flex-direction: column; gap: 1px; }
 }
 
 .ou-log {
-    display: flex; align-items: flex-start; gap: 8px;
-    padding: 6px 8px; border-radius: 5px;
-    transition: background 0.1s;
+    display: flex; align-items: flex-start; gap: 7px;
+    padding: 5px 7px; border-radius: 5px; transition: background .1s;
 
-    &:hover { background: rgba(255,255,255,0.025); }
+    &:hover { background: rgba(255,255,255,.02); }
 
-    &__bar {
-        width: 2px; min-height: 18px; flex-shrink: 0; margin-top: 2px;
-        border-radius: 2px; background: rgba(255,255,255,0.08);
-    }
+    &__bar { width: 2px; min-height: 16px; flex-shrink: 0; margin-top: 2px; border-radius: 2px; background: rgba(255,255,255,.06); }
+    &__txt { font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 12px; line-height: 1.5; color: #3f5f7d; word-break: break-all; }
 
-    &__text {
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        font-size: 12px; line-height: 1.55; color: #476080;
-        word-break: break-all;
-    }
-
-    &--win {
-        background: rgba($green,0.04);
-        .ou-log__bar { background: $green; box-shadow: 0 0 6px rgba($green,0.5); }
-        .ou-log__text { color: #34d399; }
-    }
-
-    &--loss {
-        background: rgba($red,0.04);
-        .ou-log__bar { background: $red; box-shadow: 0 0 6px rgba($red,0.5); }
-        .ou-log__text { color: #f87171; }
-    }
-
-    &--pattern {
-        background: rgba($purple,0.04);
-        .ou-log__bar { background: $purple; box-shadow: 0 0 6px rgba($purple,0.5); }
-        .ou-log__text { color: #c084fc; }
-    }
+    &--win  { background: rgba($green,.03); .ou-log__bar { background: $green; box-shadow: 0 0 5px rgba($green,.5); } .ou-log__txt { color: #34d399; } }
+    &--loss { background: rgba($red,.03);   .ou-log__bar { background: $red;   box-shadow: 0 0 5px rgba($red,.5);   } .ou-log__txt { color: #f87171; } }
+    &--pat  { background: rgba($purple,.03);.ou-log__bar { background: $purple;box-shadow: 0 0 5px rgba($purple,.5);} .ou-log__txt { color: #c084fc; } }
 }
 
-// ── Animations ────────────────────────────────────────────────
-@keyframes dot-pulse {
+// ── Keyframes ────────────────────────────────────────────────
+@keyframes blink {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.4; transform: scale(0.7); }
+    50%       { opacity: .35; transform: scale(.65); }
 }
 
-@keyframes cta-pulse {
-    0%   { box-shadow: 0 0 0 0 var(--ag, rgba(59,130,246,0.4)); }
-    70%  { box-shadow: 0 0 0 10px rgba(0,0,0,0); }
+@keyframes cta-blink {
+    0%   { box-shadow: 0 0 0 0 var(--ag, rgba(59,130,246,.4)); }
+    70%  { box-shadow: 0 0 0 9px rgba(0,0,0,0); }
     100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
 }
 
