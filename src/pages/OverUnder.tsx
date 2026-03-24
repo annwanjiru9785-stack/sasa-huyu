@@ -4,47 +4,80 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Play, Square, Activity, TrendingUp, ShieldCheck, Zap,
     Info, ChevronDown, ChevronUp, Terminal, Trash2,
-    BarChart2, Settings, Layers, Cpu,
+    BarChart2, Settings, Layers, Cpu, RefreshCw,
 } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import './over-under.scss';
 
 type Strategy = 'over_under' | 'differs' | 'rise_fall' | 'manual';
 
-const STRATEGIES = [
+const STRATEGIES: {
+    value: Strategy;
+    label: string;
+    short: string;
+    icon: React.ReactNode;
+    color: string;
+    glow: string;
+    desc: string;
+}[] = [
     {
-        value: 'over_under' as Strategy,
+        value: 'over_under',
         label: 'Over 5 / Under 4',
         short: 'O5/U4',
-        icon: <Zap size={15} />,
+        icon: <Zap size={16} />,
         color: '#3b82f6',
-        glow: 'rgba(59,130,246,0.3)',
+        glow: 'rgba(59,130,246,0.35)',
+        desc: 'Fires both contracts on trigger',
     },
     {
-        value: 'differs' as Strategy,
+        value: 'differs',
         label: 'Differs',
         short: 'DIFF',
-        icon: <Activity size={15} />,
+        icon: <Activity size={16} />,
         color: '#a855f7',
-        glow: 'rgba(168,85,247,0.3)',
+        glow: 'rgba(168,85,247,0.35)',
+        desc: 'Pushback reversal pattern',
     },
     {
-        value: 'rise_fall' as Strategy,
+        value: 'rise_fall',
         label: 'Rise / Fall',
         short: 'R/F',
-        icon: <TrendingUp size={15} />,
+        icon: <TrendingUp size={16} />,
         color: '#10b981',
-        glow: 'rgba(16,185,129,0.3)',
+        glow: 'rgba(16,185,129,0.35)',
+        desc: 'MACD momentum detection',
     },
     {
-        value: 'manual' as Strategy,
+        value: 'manual',
         label: 'Manual',
         short: 'MAN',
-        icon: <Settings size={15} />,
+        icon: <Settings size={16} />,
         color: '#f97316',
-        glow: 'rgba(249,115,22,0.3)',
+        glow: 'rgba(249,115,22,0.35)',
+        desc: 'Custom contract & barrier',
     },
-] as const;
+];
+
+const Toggle = ({
+    value,
+    onChange,
+    disabled,
+    color = '#3b82f6',
+}: {
+    value: boolean;
+    onChange: () => void;
+    disabled?: boolean;
+    color?: string;
+}) => (
+    <button
+        className={`ou-toggle ${value ? 'on' : ''}`}
+        style={value ? { '--tc': color } as React.CSSProperties : {}}
+        onClick={onChange}
+        disabled={disabled}
+    >
+        <span className='ou-toggle__thumb' />
+    </button>
+);
 
 const OverUnder = observer(() => {
     const { over_under } = useStore();
@@ -55,8 +88,7 @@ const OverUnder = observer(() => {
         is_manual_mode, manual_contract_type, manual_barrier,
         recovery_contract_type, recovery_barrier, use_recovery_delay,
         entry_digit, second_entry_digit, is_turbo, selected_symbol,
-        debug_info, is_analyzing_volatility, current_analyzing_symbol,
-        is_authorizing,
+        debug_info, is_analyzing_volatility, is_authorizing,
         setStake, setMartingale, setIsVolatilityChanger, setIsDiffersMode,
         setIs2termMode, setIsRiseFallMode, setIsAutomate, setUseSecondTrigger,
         setIsManualMode, setManualContractType, setManualBarrier,
@@ -105,198 +137,198 @@ const OverUnder = observer(() => {
 
     const totalTicks = tick_history.length || 1;
 
-    const volatilityIndices = [
-        { text: 'V 100', value: 'R_100' }, { text: 'V 75', value: 'R_75' },
-        { text: 'V 50', value: 'R_50' }, { text: 'V 25', value: 'R_25' },
-        { text: 'V 10', value: 'R_10' },
-        { text: 'V 100 (1s)', value: '1HZ100V' }, { text: 'V 75 (1s)', value: '1HZ75V' },
-        { text: 'V 50 (1s)', value: '1HZ50V' }, { text: 'V 25 (1s)', value: '1HZ25V' },
-        { text: 'V 10 (1s)', value: '1HZ10V' },
+    const volatilityOptions = [
+        { label: 'V 10 Index',       value: 'R_10' },
+        { label: 'V 25 Index',       value: 'R_25' },
+        { label: 'V 50 Index',       value: 'R_50' },
+        { label: 'V 75 Index',       value: 'R_75' },
+        { label: 'V 100 Index',      value: 'R_100' },
+        { label: 'V 10 (1s)',        value: '1HZ10V' },
+        { label: 'V 25 (1s)',        value: '1HZ25V' },
+        { label: 'V 50 (1s)',        value: '1HZ50V' },
+        { label: 'V 75 (1s)',        value: '1HZ75V' },
+        { label: 'V 100 (1s)',       value: '1HZ100V' },
     ];
 
-    const volatilityIndicesFull = [
-        { text: 'Volatility 100 Index', value: 'R_100' },
-        { text: 'Volatility 75 Index', value: 'R_75' },
-        { text: 'Volatility 50 Index', value: 'R_50' },
-        { text: 'Volatility 25 Index', value: 'R_25' },
-        { text: 'Volatility 10 Index', value: 'R_10' },
-        { text: 'Volatility 100 (1s) Index', value: '1HZ100V' },
-        { text: 'Volatility 75 (1s) Index', value: '1HZ75V' },
-        { text: 'Volatility 50 (1s) Index', value: '1HZ50V' },
-        { text: 'Volatility 25 (1s) Index', value: '1HZ25V' },
-        { text: 'Volatility 10 (1s) Index', value: '1HZ10V' },
-    ];
-
-    const statusDot = is_authorizing ? 'pulse'
+    const statusState = is_authorizing ? 'pulse'
         : connection_status === 'Account Connected' ? 'ok'
-        : connection_status === 'Live Ticks' ? 'pulse'
+        : connection_status === 'Live Ticks' ? 'live'
         : 'off';
 
-    const statusLabel = is_authorizing ? 'Authorizing'
+    const statusText = is_authorizing ? 'Authorizing'
         : connection_status === 'Account Connected' ? 'Connected'
         : connection_status === 'Live Ticks' ? 'Live'
         : connection_status || 'Offline';
 
-    const startLabel = useMemo(() => {
+    const ctaLabel = useMemo(() => {
         if (is_authorizing) return 'AUTHORIZING…';
-        if (is_auto_running) {
-            if (is_analyzing_volatility) return 'SCANNING…';
-            return 'STOP BOT';
-        }
+        if (is_auto_running) return is_analyzing_volatility ? 'SCANNING MARKETS…' : 'STOP BOT';
         return 'START BOT';
     }, [is_auto_running, is_analyzing_volatility, is_authorizing]);
 
+    const disabled = is_auto_running || is_authorizing;
+
     return (
         <div className='ou-root'>
-            {/* ── Top Bar ───────────────────────────────────── */}
-            <div className='ou-topbar'>
-                <div className='ou-topbar__brand'>
-                    <div className='ou-topbar__icon'>
-                        <Zap size={16} />
-                    </div>
-                    <div>
-                        <div className='ou-topbar__title'>Over / Under Terminal</div>
-                        <div className='ou-topbar__sub'>Synthetic Indices · Digit Strategy Engine</div>
-                    </div>
-                </div>
-                <div className={`ou-status ou-status--${statusDot}`}>
-                    <span className='ou-status__dot' />
-                    <span>{statusLabel}</span>
-                </div>
-            </div>
 
-            {/* ── Guide FAB ─────────────────────────────────── */}
-            <button className='ou-guide-fab' onClick={() => setShowGuide(true)}>
-                <Info size={16} /><span>Guide</span>
+            {/* ══════════════ GUIDE FAB ══════════════ */}
+            <button className='ou-fab' onClick={() => setShowGuide(true)}>
+                <Info size={15} />
+                <span>Guide</span>
             </button>
 
-            {/* ── Guide Modal ───────────────────────────────── */}
+            {/* ══════════════ GUIDE MODAL ══════════════ */}
             <AnimatePresence>
                 {showGuide && (
-                    <motion.div className='ou-overlay' initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    <motion.div className='ou-overlay'
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         onClick={() => setShowGuide(false)}>
-                        <motion.div className='ou-guide' initial={{ opacity: 0, y: 24, scale: 0.97 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.97 }}
+                        <motion.div className='ou-modal'
+                            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.97 }}
                             onClick={e => e.stopPropagation()}>
-                            <div className='ou-guide__header'>
-                                <div className='ou-guide__title'><Info size={18} /> Over/Under Tool — Strategy Guide</div>
-                                <button className='ou-guide__close' onClick={() => setShowGuide(false)}>×</button>
+                            <div className='ou-modal__head'>
+                                <span><Info size={16} /> Strategy Guide</span>
+                                <button onClick={() => setShowGuide(false)}>×</button>
                             </div>
-                            <div className='ou-guide__body'>
-                                <div className='ou-guide__section'>
-                                    <h3 className='ou-guide__sh blue'>Market Settings</h3>
-                                    <p><strong>Index</strong> — Select which volatility market to trade. Ten indices are available (standard and 1-second tick variants).</p>
-                                    <p><strong>Volatility Changer</strong> — When enabled, the bot scans all 10 indices and auto-switches to the one with the best statistical score before trading.</p>
-                                </div>
-                                <div className='ou-guide__section'>
-                                    <h3 className='ou-guide__sh blue'>Over 5 / Under 4</h3>
-                                    <p>The bot waits until the live tick's last digit matches your <strong>Trigger Digit</strong>, then simultaneously places both an Over 5 and Under 4 contract.</p>
-                                    <p><strong>2ND Trigger</strong> — Require two consecutive matching digits before firing (extra precision).</p>
-                                    <p><strong>Turbo Mode</strong> — Available for all strategies. When ON, the bot loops continuously, re-triggering the next trade immediately after each settled round without any pause.</p>
-                                </div>
-                                <div className='ou-guide__section'>
-                                    <h3 className='ou-guide__sh purple'>Differs (Pushback)</h3>
-                                    <p>Watches raw price movement for the <em>Exaggerated Pushback</em> pattern: <strong>3 or more consecutive ticks in one direction</strong>, followed by a tick that snaps back the opposite way. When that reversal lands, the bot places a <strong>Digit Differs</strong> contract using the reversal tick's last digit.</p>
-                                    <p>The check is done fresh on every tick by reading the real price history — no stale counters, no false fires on mixed directions.</p>
-                                    <p><strong>2-Term Compound</strong> — Adds winning profit on top of the next stake for compounding growth.</p>
-                                    <p><strong>Auto Cycle</strong> — Restarts automatically after each completed round.</p>
-                                </div>
-                                <div className='ou-guide__section'>
-                                    <h3 className='ou-guide__sh green'>Rise / Fall</h3>
-                                    <p>Uses MACD-based trend detection on the live tick stream. Identifies bullish or bearish momentum and places a Rise or Fall contract accordingly.</p>
-                                    <p><strong>Auto Cycle</strong> — Continuously re-evaluates the trend after each trade settles.</p>
-                                </div>
-                                <div className='ou-guide__section'>
-                                    <h3 className='ou-guide__sh orange'>Manual</h3>
-                                    <p>You choose the exact <strong>Contract Type</strong> (Over, Under, or Differs) and the <strong>Barrier Digit</strong>. The bot waits for your Trigger Digit before placing the trade.</p>
-                                </div>
-                                <div className='ou-guide__section'>
-                                    <h3 className='ou-guide__sh red'>Recovery System</h3>
-                                    <p>After a losing round, the bot automatically switches to your <strong>Recovery Type</strong> and <strong>Barrier</strong> with a Martingale-multiplied stake until the full loss is recovered, then resets.</p>
-                                    <p><strong>Trigger Wait</strong> — Forces the bot to wait for your trigger digit before placing recovery trades.</p>
-                                </div>
+                            <div className='ou-modal__body'>
+                                {[
+                                    { color: 'blue', title: 'Market Settings', items: [
+                                        '<strong>Index</strong> — Choose which volatility market to trade.',
+                                        '<strong>Volatility Changer</strong> — Auto-scans all 10 indices and switches to the best one for your strategy.',
+                                    ]},
+                                    { color: 'blue', title: 'Over 5 / Under 4', items: [
+                                        'Waits for your Trigger Digit, then places Over 5 and Under 4 simultaneously.',
+                                        '<strong>2ND Trigger</strong> — Requires two consecutive matching digits before firing.',
+                                        '<strong>Turbo Mode</strong> — Re-triggers immediately after each settled round.',
+                                    ]},
+                                    { color: 'purple', title: 'Differs (Pushback)', items: [
+                                        '3+ consecutive ticks in one direction followed by a reversal. Bot places a Differs contract on the reversal digit.',
+                                        '<strong>2-Term Compound</strong> — Compounds profit onto the next stake.',
+                                        '<strong>Auto Cycle</strong> — Restarts after each round.',
+                                    ]},
+                                    { color: 'green', title: 'Rise / Fall', items: [
+                                        'Uses MACD trend detection on the live tick stream to place Rise or Fall contracts.',
+                                    ]},
+                                    { color: 'orange', title: 'Manual', items: [
+                                        'You choose the Contract Type (Over/Under/Differs), Barrier, and Trigger Digit.',
+                                    ]},
+                                    { color: 'red', title: 'Recovery System', items: [
+                                        'After a loss, bot uses Martingale-scaled stake with your Recovery Type until loss is recovered.',
+                                        '<strong>Trigger Wait</strong> — Waits for trigger digit before recovery trades.',
+                                    ]},
+                                ].map(sec => (
+                                    <div key={sec.title} className='ou-modal__section'>
+                                        <div className={`ou-modal__sh ${sec.color}`}>{sec.title}</div>
+                                        {sec.items.map((item, i) => (
+                                            <p key={i} dangerouslySetInnerHTML={{ __html: item }} />
+                                        ))}
+                                    </div>
+                                ))}
                             </div>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* ── Digit Heatmap ─────────────────────────────── */}
+            {/* ══════════════ HEADER ══════════════ */}
+            <div className='ou-header'>
+                <div className='ou-header__brand'>
+                    <div className='ou-header__icon'>
+                        <Zap size={18} />
+                    </div>
+                    <div>
+                        <div className='ou-header__title'>Over / Under Terminal</div>
+                        <div className='ou-header__sub'>Synthetic Indices · Digit Strategy Engine</div>
+                    </div>
+                </div>
+                <div className={`ou-pill ou-pill--${statusState}`}>
+                    <span className='ou-pill__dot' />
+                    <span>{statusText}</span>
+                </div>
+            </div>
+
+            {/* ══════════════ HEATMAP ══════════════ */}
             <div className='ou-heatmap'>
                 {digitStats.map((count, i) => {
-                    const pct = ((count / totalTicks) * 100);
+                    const pct = (count / totalTicks) * 100;
                     const isHot = i === maxIdx && count > 0;
                     const isCold = i === minIdx && count > 0;
                     const isActive = last_digit === i;
-                    const fillColor = isHot
-                        ? 'linear-gradient(180deg,#10b981,#059669)'
-                        : isCold
-                        ? 'linear-gradient(180deg,#ef4444,#dc2626)'
-                        : 'linear-gradient(180deg,#3b82f6,#2563eb)';
                     return (
                         <motion.div
                             key={i}
-                            className={`ou-digit ${isActive ? 'active' : ''} ${isHot ? 'hot' : isCold ? 'cold' : ''}`}
-                            whileHover={{ y: -4, scale: 1.02 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                            className={`ou-cell ${isActive ? 'ou-cell--active' : ''} ${isHot ? 'ou-cell--hot' : isCold ? 'ou-cell--cold' : ''}`}
+                            whileHover={{ y: -4, scale: 1.04 }}
+                            transition={{ type: 'spring', stiffness: 380, damping: 22 }}
                         >
-                            {isHot && <span className='ou-digit__tag ou-digit__tag--hot'>HOT</span>}
-                            {isCold && <span className='ou-digit__tag ou-digit__tag--cold'>LOW</span>}
-                            {!isHot && !isCold && <span style={{ height: '1rem', display: 'block' }} />}
-                            <div className='ou-digit__num'>{i}</div>
-                            <div className='ou-digit__bar'>
+                            <div className='ou-cell__top'>
+                                {isHot ? <span className='ou-badge ou-badge--hot'>HOT</span>
+                                    : isCold ? <span className='ou-badge ou-badge--cold'>LOW</span>
+                                    : <span className='ou-badge ou-badge--empty' />}
+                            </div>
+                            <div className='ou-cell__digit'>{i}</div>
+                            <div className='ou-cell__track'>
                                 <motion.div
-                                    className='ou-digit__fill'
-                                    animate={{ height: `${pct}%` }}
-                                    transition={{ duration: 0.35, ease: 'easeOut' }}
-                                    style={{ background: fillColor }}
+                                    className='ou-cell__fill'
+                                    animate={{ height: `${Math.max(pct, 2)}%` }}
+                                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                                    style={{
+                                        background: isHot
+                                            ? 'linear-gradient(180deg,#10b981,#059669)'
+                                            : isCold
+                                            ? 'linear-gradient(180deg,#ef4444,#b91c1c)'
+                                            : 'linear-gradient(180deg,#3b82f6,#1d4ed8)',
+                                    }}
                                 />
                             </div>
-                            <div className='ou-digit__pct'>{pct.toFixed(0)}%</div>
+                            <div className='ou-cell__pct'>{pct.toFixed(0)}%</div>
                         </motion.div>
                     );
                 })}
             </div>
 
-            {/* ── Main Grid ─────────────────────────────────── */}
-            <div className='ou-grid'>
+            {/* ══════════════ MAIN LAYOUT ══════════════ */}
+            <div className='ou-layout'>
 
-                {/* ═══ LEFT — Config Panel ═══ */}
-                <div className='ou-panel'>
+                {/* ── CONFIG PANEL ── */}
+                <div className='ou-config'>
 
-                    {/* Panel top bar */}
-                    <div className='ou-panel__bar'>
-                        <div className='ou-panel__bar-left'>
-                            <Cpu size={15} />
-                            <span>Configuration</span>
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--muted, #4e6480)', fontWeight: 600, letterSpacing: '0.4px' }}>
-                            {activeMeta.icon}&nbsp;{activeMeta.label}
-                        </div>
+                    {/* Config header */}
+                    <div className='ou-config__head'>
+                        <span className='ou-config__head-title'><Cpu size={15} /> Configuration</span>
+                        <span className='ou-config__head-strategy' style={{ color: activeMeta.color }}>
+                            {activeMeta.icon}&nbsp;{activeMeta.short}
+                        </span>
                     </div>
 
-                    {/* ── Market ───────────────────────────── */}
-                    <div className='ou-block'>
-                        <div className='ou-block__label'><BarChart2 size={12} /> Market</div>
-                        <div className='ou-row'>
-                            <div className='ou-field'>
-                                <label>Index</label>
-                                <select className='ou-select' value={selected_symbol}
+                    {/* ── MARKET ── */}
+                    <div className='ou-section'>
+                        <div className='ou-section__label'><BarChart2 size={12} /> Market</div>
+                        <div className='ou-section__row'>
+                            <div className='ou-field ou-field--grow'>
+                                <label className='ou-label'>Index</label>
+                                <select
+                                    className='ou-select'
+                                    value={selected_symbol}
                                     onChange={e => setSelectedSymbol(e.target.value)}
-                                    disabled={is_auto_running || is_authorizing}>
-                                    {volatilityIndicesFull.map(v => (
-                                        <option key={v.value} value={v.value}>{v.text}</option>
+                                    disabled={disabled}
+                                >
+                                    {volatilityOptions.map(v => (
+                                        <option key={v.value} value={v.value}>{v.label}</option>
                                     ))}
                                 </select>
                             </div>
-                            <div className='ou-field ou-field--auto'>
-                                <label>Volatility Changer</label>
-                                <div className='ou-row ou-row--center'>
-                                    <button className={`ou-toggle ${is_volatility_changer ? 'on' : ''}`}
-                                        onClick={() => setIsVolatilityChanger(!is_volatility_changer)}
-                                        disabled={is_auto_running || is_authorizing}>
-                                        <span />
-                                    </button>
+                            <div className='ou-field'>
+                                <label className='ou-label'>Vol. Changer</label>
+                                <div className='ou-toggle-row'>
+                                    <Toggle
+                                        value={is_volatility_changer}
+                                        onChange={() => setIsVolatilityChanger(!is_volatility_changer)}
+                                        disabled={disabled}
+                                        color='#3b82f6'
+                                    />
                                     <span className={`ou-toggle-label ${is_volatility_changer ? 'on' : ''}`}>
                                         {is_volatility_changer ? 'ON' : 'OFF'}
                                     </span>
@@ -305,234 +337,225 @@ const OverUnder = observer(() => {
                         </div>
                     </div>
 
-                    {/* ── Strategy Selector ────────────────── */}
-                    <div className='ou-block'>
-                        <div className='ou-block__label'><Layers size={12} /> Strategy</div>
-                        <div className='ou-strategy-tabs'>
+                    {/* ── STRATEGY ── */}
+                    <div className='ou-section'>
+                        <div className='ou-section__label'><Layers size={12} /> Strategy</div>
+                        <div className='ou-strat-grid'>
                             {STRATEGIES.map(s => (
                                 <button
                                     key={s.value}
-                                    className={`ou-strat-tab ${activeStrategy === s.value ? 'active' : ''}`}
-                                    style={activeStrategy === s.value ? {
-                                        '--sc': s.color, '--sg': s.glow,
-                                    } as React.CSSProperties : {}}
+                                    className={`ou-strat ${activeStrategy === s.value ? 'ou-strat--active' : ''}`}
+                                    style={activeStrategy === s.value
+                                        ? { '--sc': s.color, '--sg': s.glow } as React.CSSProperties
+                                        : {}}
                                     onClick={() => selectStrategy(s.value)}
-                                    disabled={is_auto_running || is_authorizing}
+                                    disabled={disabled}
                                 >
-                                    <span className='ou-strat-tab__icon'>{s.icon}</span>
-                                    <span className='ou-strat-tab__label'>{s.label}</span>
+                                    <span className='ou-strat__icon'>{s.icon}</span>
+                                    <div>
+                                        <div className='ou-strat__name'>{s.label}</div>
+                                        <div className='ou-strat__desc'>{s.desc}</div>
+                                    </div>
                                 </button>
                             ))}
                         </div>
-
-                        {/* Strategy description pill */}
-                        <div className='ou-strat-badge' style={{ '--sc': activeMeta.color } as React.CSSProperties}>
-                            <span className='ou-strat-badge__dot' />
-                            {activeStrategy === 'over_under' && 'Fires Over 5 & Under 4 on trigger digit match'}
-                            {activeStrategy === 'differs' && 'Trades reversal digit after a clean 3+ tick surge'}
-                            {activeStrategy === 'rise_fall' && 'MACD trend analysis — places Rise or Fall contracts'}
-                            {activeStrategy === 'manual' && 'You control the contract type, barrier, and trigger'}
-                        </div>
-
-                        {/* Strategy-specific options */}
-                        <AnimatePresence mode='wait'>
-                            <motion.div key={activeStrategy}
-                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
-
-                                {/* Over 5 / Under 4 */}
-                                {activeStrategy === 'over_under' && (
-                                    <div className='ou-strat-fields'>
-                                        <div className='ou-row'>
-                                            <div className='ou-field'>
-                                                <label>Trigger Digit</label>
-                                                <div className='ou-trigger-row'>
-                                                    <div className='ou-digit-box'>
-                                                        <input type='number' min='0' max='9' value={entry_digit}
-                                                            onChange={e => setEntryDigit(Number(e.target.value))}
-                                                            disabled={is_auto_running || is_authorizing} />
-                                                        <span className={`ou-led ${over_under.last_digit === entry_digit ? 'on' : ''}`} />
-                                                    </div>
-                                                    {use_second_trigger && (
-                                                        <div className='ou-digit-box'>
-                                                            <input type='number' min='0' max='9' value={second_entry_digit}
-                                                                onChange={e => setSecondEntryDigit(Number(e.target.value))}
-                                                                disabled={is_auto_running || is_authorizing} />
-                                                            <span className={`ou-led ${over_under.last_last_digit === entry_digit && over_under.last_digit === second_entry_digit ? 'on' : ''}`} />
-                                                        </div>
-                                                    )}
-                                                    <button className={`ou-chip ${use_second_trigger ? 'active' : ''}`}
-                                                        onClick={() => setUseSecondTrigger(!use_second_trigger)}
-                                                        disabled={is_auto_running || is_authorizing}>
-                                                        2ND
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Differs */}
-                                {activeStrategy === 'differs' && (
-                                    <div className='ou-strat-fields'>
-                                        <div className='ou-row'>
-                                            <div className='ou-field ou-field--auto'>
-                                                <label>2-Term Compound</label>
-                                                <div className='ou-row ou-row--center'>
-                                                    <button className={`ou-toggle ${is_2term_mode ? 'on' : ''}`}
-                                                        onClick={() => setIs2termMode(!is_2term_mode)}
-                                                        disabled={is_auto_running || is_authorizing}><span /></button>
-                                                    <span className={`ou-toggle-label ${is_2term_mode ? 'on' : ''}`}>{is_2term_mode ? 'ON' : 'OFF'}</span>
-                                                </div>
-                                            </div>
-                                            <div className='ou-field ou-field--auto'>
-                                                <label>Auto Cycle</label>
-                                                <div className='ou-row ou-row--center'>
-                                                    <button className={`ou-toggle ${is_automate ? 'on' : ''}`}
-                                                        onClick={() => setIsAutomate(!is_automate)}
-                                                        disabled={is_auto_running || is_authorizing}><span /></button>
-                                                    <span className={`ou-toggle-label ${is_automate ? 'on' : ''}`}>{is_automate ? 'ON' : 'OFF'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Rise / Fall */}
-                                {activeStrategy === 'rise_fall' && (
-                                    <div className='ou-strat-fields'>
-                                        <div className='ou-row'>
-                                            <div className='ou-field ou-field--auto'>
-                                                <label>Auto Cycle</label>
-                                                <div className='ou-row ou-row--center'>
-                                                    <button className={`ou-toggle ${is_automate ? 'on' : ''}`}
-                                                        onClick={() => setIsAutomate(!is_automate)}
-                                                        disabled={is_auto_running || is_authorizing}><span /></button>
-                                                    <span className={`ou-toggle-label ${is_automate ? 'on' : ''}`}>{is_automate ? 'ON' : 'OFF'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Manual */}
-                                {activeStrategy === 'manual' && (
-                                    <div className='ou-strat-fields'>
-                                        <div className='ou-row'>
-                                            <div className='ou-field'>
-                                                <label>Contract Type</label>
-                                                <select className='ou-select' value={manual_contract_type}
-                                                    onChange={e => setManualContractType(e.target.value)}
-                                                    disabled={is_auto_running || is_authorizing}>
-                                                    <option value='DIGITOVER'>Over</option>
-                                                    <option value='DIGITUNDER'>Under</option>
-                                                    <option value='DIGITDIFF'>Differs</option>
-                                                </select>
-                                            </div>
-                                            <div className='ou-field'>
-                                                <label>Barrier Digit</label>
-                                                <input className='ou-input' type='number' min='0' max='9'
-                                                    value={manual_barrier}
-                                                    onChange={e => setManualBarrier(e.target.value)}
-                                                    disabled={is_auto_running || is_authorizing} />
-                                            </div>
-                                        </div>
-                                        <div className='ou-row'>
-                                            <div className='ou-field'>
-                                                <label>Trigger Digit</label>
-                                                <div className='ou-trigger-row'>
-                                                    <div className='ou-digit-box'>
-                                                        <input type='number' min='0' max='9' value={entry_digit}
-                                                            onChange={e => setEntryDigit(Number(e.target.value))}
-                                                            disabled={is_auto_running || is_authorizing} />
-                                                        <span className={`ou-led ${over_under.last_digit === entry_digit ? 'on' : ''}`} />
-                                                    </div>
-                                                    {use_second_trigger && (
-                                                        <div className='ou-digit-box'>
-                                                            <input type='number' min='0' max='9' value={second_entry_digit}
-                                                                onChange={e => setSecondEntryDigit(Number(e.target.value))}
-                                                                disabled={is_auto_running || is_authorizing} />
-                                                            <span className={`ou-led ${over_under.last_last_digit === entry_digit && over_under.last_digit === second_entry_digit ? 'on' : ''}`} />
-                                                        </div>
-                                                    )}
-                                                    <button className={`ou-chip ${use_second_trigger ? 'active' : ''}`}
-                                                        onClick={() => setUseSecondTrigger(!use_second_trigger)}
-                                                        disabled={is_auto_running || is_authorizing}>2ND</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
                     </div>
 
-                    {/* ── Stake & Risk ──────────────────────── */}
-                    <div className='ou-block'>
-                        <div className='ou-block__label'><BarChart2 size={12} /> Stake & Risk</div>
-                        <div className='ou-row'>
-                            <div className='ou-field'>
-                                <label>Stake ($)</label>
-                                <input className='ou-input' type='number' min='0.35' step='0.1' value={stake}
-                                    onChange={e => setStake(Number(e.target.value))}
-                                    disabled={is_auto_running || is_authorizing} />
-                            </div>
-                            <div className='ou-field'>
-                                <label>Martingale ×</label>
-                                <input className='ou-input' type='number' min='1' step='0.1' value={martingale}
-                                    onChange={e => setMartingale(Number(e.target.value))}
-                                    disabled={is_auto_running || is_authorizing} />
-                            </div>
-                            <div className='ou-field ou-field--auto'>
-                                <label>Turbo Mode</label>
-                                <div className='ou-row ou-row--center'>
-                                    <button className={`ou-toggle ${is_turbo ? 'on' : ''}`}
-                                        onClick={() => setIsTurbo(!is_turbo)}
-                                        disabled={is_auto_running || is_authorizing}><span /></button>
-                                    <span className={`ou-toggle-label ${is_turbo ? 'on' : ''}`}>{is_turbo ? 'ON' : 'OFF'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ── Recovery ─────────────────────────── */}
-                    <div className='ou-block ou-block--collapsible'>
-                        <button className='ou-collapse-btn' onClick={() => setShowRecovery(!showRecovery)}>
-                            <span className='ou-block__label' style={{ padding: 0, borderBottom: 'none', marginBottom: 0 }}>
-                                <ShieldCheck size={12} /> Recovery System
-                            </span>
-                            {showRecovery ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </button>
-                        <AnimatePresence>
-                            {showRecovery && (
-                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
-                                    style={{ overflow: 'hidden' }}>
-                                    <div className='ou-row' style={{ marginTop: '0.75rem' }}>
+                    {/* ── STRATEGY OPTIONS ── */}
+                    <AnimatePresence mode='wait'>
+                        <motion.div
+                            key={activeStrategy}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.16 }}
+                        >
+                            {activeStrategy === 'over_under' && (
+                                <div className='ou-section'>
+                                    <div className='ou-section__label'><Zap size={12} /> Trigger</div>
+                                    <div className='ou-section__row'>
                                         <div className='ou-field'>
-                                            <label>Recovery Type</label>
-                                            <select className='ou-select' value={recovery_contract_type}
-                                                onChange={e => setRecoveryContractType(e.target.value)}
-                                                disabled={is_auto_running || is_authorizing}>
+                                            <label className='ou-label'>Trigger Digit</label>
+                                            <div className='ou-trigger-row'>
+                                                <div className='ou-dbox'>
+                                                    <input
+                                                        type='number' min='0' max='9'
+                                                        value={entry_digit}
+                                                        onChange={e => setEntryDigit(Number(e.target.value))}
+                                                        disabled={disabled}
+                                                    />
+                                                    <span className={`ou-led ${over_under.last_digit === entry_digit ? 'ou-led--on' : ''}`} />
+                                                </div>
+                                                {use_second_trigger && (
+                                                    <div className='ou-dbox'>
+                                                        <input
+                                                            type='number' min='0' max='9'
+                                                            value={second_entry_digit}
+                                                            onChange={e => setSecondEntryDigit(Number(e.target.value))}
+                                                            disabled={disabled}
+                                                        />
+                                                        <span className={`ou-led ${over_under.last_last_digit === entry_digit && over_under.last_digit === second_entry_digit ? 'ou-led--on' : ''}`} />
+                                                    </div>
+                                                )}
+                                                <button
+                                                    className={`ou-chip ${use_second_trigger ? 'ou-chip--on' : ''}`}
+                                                    onClick={() => setUseSecondTrigger(!use_second_trigger)}
+                                                    disabled={disabled}
+                                                >
+                                                    2ND
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeStrategy === 'differs' && (
+                                <div className='ou-section'>
+                                    <div className='ou-section__label'><Activity size={12} /> Options</div>
+                                    <div className='ou-section__row'>
+                                        <div className='ou-field'>
+                                            <label className='ou-label'>2-Term Compound</label>
+                                            <div className='ou-toggle-row'>
+                                                <Toggle value={is_2term_mode} onChange={() => setIs2termMode(!is_2term_mode)} disabled={disabled} color='#a855f7' />
+                                                <span className={`ou-toggle-label ${is_2term_mode ? 'on' : ''}`} style={is_2term_mode ? { color: '#a855f7' } : {}}>{is_2term_mode ? 'ON' : 'OFF'}</span>
+                                            </div>
+                                        </div>
+                                        <div className='ou-field'>
+                                            <label className='ou-label'>Auto Cycle</label>
+                                            <div className='ou-toggle-row'>
+                                                <Toggle value={is_automate} onChange={() => setIsAutomate(!is_automate)} disabled={disabled} color='#a855f7' />
+                                                <span className={`ou-toggle-label ${is_automate ? 'on' : ''}`} style={is_automate ? { color: '#a855f7' } : {}}>{is_automate ? 'ON' : 'OFF'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeStrategy === 'rise_fall' && (
+                                <div className='ou-section'>
+                                    <div className='ou-section__label'><TrendingUp size={12} /> Options</div>
+                                    <div className='ou-section__row'>
+                                        <div className='ou-field'>
+                                            <label className='ou-label'>Auto Cycle</label>
+                                            <div className='ou-toggle-row'>
+                                                <Toggle value={is_automate} onChange={() => setIsAutomate(!is_automate)} disabled={disabled} color='#10b981' />
+                                                <span className={`ou-toggle-label ${is_automate ? 'on' : ''}`} style={is_automate ? { color: '#10b981' } : {}}>{is_automate ? 'ON' : 'OFF'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeStrategy === 'manual' && (
+                                <div className='ou-section'>
+                                    <div className='ou-section__label'><Settings size={12} /> Contract</div>
+                                    <div className='ou-section__row'>
+                                        <div className='ou-field ou-field--grow'>
+                                            <label className='ou-label'>Contract Type</label>
+                                            <select className='ou-select' value={manual_contract_type}
+                                                onChange={e => setManualContractType(e.target.value)} disabled={disabled}>
                                                 <option value='DIGITOVER'>Over</option>
                                                 <option value='DIGITUNDER'>Under</option>
                                                 <option value='DIGITDIFF'>Differs</option>
                                             </select>
                                         </div>
                                         <div className='ou-field'>
-                                            <label>Recovery Barrier</label>
+                                            <label className='ou-label'>Barrier</label>
+                                            <input className='ou-input' type='number' min='0' max='9'
+                                                value={manual_barrier}
+                                                onChange={e => setManualBarrier(e.target.value)}
+                                                disabled={disabled} />
+                                        </div>
+                                    </div>
+                                    <div className='ou-section__row' style={{ marginTop: 12 }}>
+                                        <div className='ou-field'>
+                                            <label className='ou-label'>Trigger Digit</label>
+                                            <div className='ou-trigger-row'>
+                                                <div className='ou-dbox'>
+                                                    <input type='number' min='0' max='9' value={entry_digit}
+                                                        onChange={e => setEntryDigit(Number(e.target.value))} disabled={disabled} />
+                                                    <span className={`ou-led ${over_under.last_digit === entry_digit ? 'ou-led--on' : ''}`} />
+                                                </div>
+                                                {use_second_trigger && (
+                                                    <div className='ou-dbox'>
+                                                        <input type='number' min='0' max='9' value={second_entry_digit}
+                                                            onChange={e => setSecondEntryDigit(Number(e.target.value))} disabled={disabled} />
+                                                        <span className={`ou-led ${over_under.last_last_digit === entry_digit && over_under.last_digit === second_entry_digit ? 'ou-led--on' : ''}`} />
+                                                    </div>
+                                                )}
+                                                <button className={`ou-chip ${use_second_trigger ? 'ou-chip--on' : ''}`}
+                                                    onClick={() => setUseSecondTrigger(!use_second_trigger)} disabled={disabled}>
+                                                    2ND
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
+
+                    {/* ── STAKE & RISK ── */}
+                    <div className='ou-section'>
+                        <div className='ou-section__label'><BarChart2 size={12} /> Stake &amp; Risk</div>
+                        <div className='ou-section__row'>
+                            <div className='ou-field'>
+                                <label className='ou-label'>Stake ($)</label>
+                                <input className='ou-input' type='number' min='0.35' step='0.1'
+                                    value={stake} onChange={e => setStake(Number(e.target.value))} disabled={disabled} />
+                            </div>
+                            <div className='ou-field'>
+                                <label className='ou-label'>Martingale ×</label>
+                                <input className='ou-input' type='number' min='1' step='0.1'
+                                    value={martingale} onChange={e => setMartingale(Number(e.target.value))} disabled={disabled} />
+                            </div>
+                            <div className='ou-field'>
+                                <label className='ou-label'>Turbo</label>
+                                <div className='ou-toggle-row'>
+                                    <Toggle value={is_turbo} onChange={() => setIsTurbo(!is_turbo)} disabled={disabled} color='#f59e0b' />
+                                    <span className={`ou-toggle-label ${is_turbo ? 'on' : ''}`} style={is_turbo ? { color: '#f59e0b' } : {}}>{is_turbo ? 'ON' : 'OFF'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── RECOVERY ── */}
+                    <div className='ou-section ou-section--collapse'>
+                        <button className='ou-collapse-btn' onClick={() => setShowRecovery(!showRecovery)}>
+                            <span><ShieldCheck size={12} /> Recovery System</span>
+                            {showRecovery ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
+                        <AnimatePresence>
+                            {showRecovery && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    style={{ overflow: 'hidden' }}
+                                >
+                                    <div className='ou-section__row' style={{ padding: '12px 0 4px' }}>
+                                        <div className='ou-field ou-field--grow'>
+                                            <label className='ou-label'>Recovery Type</label>
+                                            <select className='ou-select' value={recovery_contract_type}
+                                                onChange={e => setRecoveryContractType(e.target.value)} disabled={disabled}>
+                                                <option value='DIGITOVER'>Over</option>
+                                                <option value='DIGITUNDER'>Under</option>
+                                                <option value='DIGITDIFF'>Differs</option>
+                                            </select>
+                                        </div>
+                                        <div className='ou-field'>
+                                            <label className='ou-label'>Barrier</label>
                                             <input className='ou-input' type='number' min='0' max='9'
                                                 value={recovery_barrier}
-                                                onChange={e => setRecoveryBarrier(e.target.value)}
-                                                disabled={is_auto_running || is_authorizing} />
+                                                onChange={e => setRecoveryBarrier(e.target.value)} disabled={disabled} />
                                         </div>
-                                        <div className='ou-field ou-field--auto'>
-                                            <label>Trigger Wait</label>
-                                            <div className='ou-row ou-row--center'>
-                                                <button className={`ou-toggle ${use_recovery_delay ? 'on' : ''}`}
-                                                    onClick={() => setUseRecoveryDelay(!use_recovery_delay)}
-                                                    disabled={is_auto_running || is_authorizing}><span /></button>
-                                                <span className={`ou-toggle-label ${use_recovery_delay ? 'on' : ''}`}>{use_recovery_delay ? 'ON' : 'OFF'}</span>
+                                        <div className='ou-field'>
+                                            <label className='ou-label'>Trigger Wait</label>
+                                            <div className='ou-toggle-row'>
+                                                <Toggle value={use_recovery_delay} onChange={() => setUseRecoveryDelay(!use_recovery_delay)} disabled={disabled} color='#ef4444' />
+                                                <span className={`ou-toggle-label ${use_recovery_delay ? 'on' : ''}`} style={use_recovery_delay ? { color: '#ef4444' } : {}}>{use_recovery_delay ? 'ON' : 'OFF'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -541,35 +564,42 @@ const OverUnder = observer(() => {
                         </AnimatePresence>
                     </div>
 
-                    {/* ── Start / Stop ──────────────────────── */}
-                    <motion.button
-                        className={`ou-cta ${is_auto_running ? 'stop' : 'start'}`}
-                        onClick={handleStartStop}
-                        disabled={is_authorizing}
-                        whileHover={!is_authorizing ? { scale: 1.015 } : {}}
-                        whileTap={!is_authorizing ? { scale: 0.985 } : {}}
-                        style={{ '--ac': is_auto_running ? '#ef4444' : activeMeta.color, '--ag': is_auto_running ? 'rgba(239,68,68,0.35)' : activeMeta.glow } as React.CSSProperties}
-                    >
-                        <span className='ou-cta__icon'>
-                            {is_auto_running ? <Square size={18} /> : <Play size={18} />}
-                        </span>
-                        <span className='ou-cta__text'>{startLabel}</span>
-                        {is_auto_running && <span className='ou-cta__pulse' />}
-                    </motion.button>
+                    {/* ── CTA ── */}
+                    <div className='ou-cta-wrap'>
+                        <motion.button
+                            className={`ou-cta ${is_auto_running ? 'ou-cta--stop' : 'ou-cta--start'}`}
+                            style={{
+                                '--ac': is_auto_running ? '#ef4444' : activeMeta.color,
+                                '--ag': is_auto_running ? 'rgba(239,68,68,0.4)' : activeMeta.glow,
+                            } as React.CSSProperties}
+                            onClick={handleStartStop}
+                            disabled={is_authorizing}
+                            whileHover={!is_authorizing ? { scale: 1.02 } : {}}
+                            whileTap={!is_authorizing ? { scale: 0.98 } : {}}
+                        >
+                            <span className='ou-cta__icon'>
+                                {is_auto_running
+                                    ? (is_analyzing_volatility ? <RefreshCw size={18} className='ou-spin' /> : <Square size={18} />)
+                                    : <Play size={18} />}
+                            </span>
+                            <span className='ou-cta__label'>{ctaLabel}</span>
+                            {is_auto_running && <span className='ou-cta__pulse' />}
+                        </motion.button>
+                    </div>
                 </div>
 
-                {/* ═══ RIGHT — Monitor Panel ═══ */}
+                {/* ── MONITOR PANEL ── */}
                 <div className='ou-monitor'>
-                    <div className='ou-monitor__bar'>
-                        <div className='ou-monitor__title'><Terminal size={14} /> Live Monitor</div>
-                        <button className='ou-monitor__clear' onClick={clearDebug} title='Clear'>
+                    <div className='ou-monitor__head'>
+                        <span><Terminal size={14} /> Live Monitor</span>
+                        <button className='ou-monitor__clear' onClick={clearDebug}>
                             <Trash2 size={13} />
                         </button>
                     </div>
                     <div className='ou-monitor__body'>
                         {debug_info.length === 0 ? (
                             <div className='ou-monitor__empty'>
-                                <Zap size={32} />
+                                <Zap size={28} />
                                 <span>Waiting for signals…</span>
                             </div>
                         ) : (
@@ -578,7 +608,7 @@ const OverUnder = observer(() => {
                                     const isWin = /WON/i.test(line);
                                     const isLoss = /LOST/i.test(line);
                                     const isPattern = /PATTERN/i.test(line);
-                                    const cls = isWin ? 'win' : isLoss ? 'loss' : isPattern ? 'pattern' : '';
+                                    const cls = isWin ? 'ou-log--win' : isLoss ? 'ou-log--loss' : isPattern ? 'ou-log--pattern' : '';
                                     return (
                                         <div key={i} className={`ou-log ${cls}`}>
                                             <span className='ou-log__bar' />
