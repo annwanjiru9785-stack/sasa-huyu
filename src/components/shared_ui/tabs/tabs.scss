@@ -1,5 +1,70 @@
 @use 'components/shared/styles/devices' as *;
 
+@keyframes dc-tab-active-3d {
+    0% {
+        transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1);
+        box-shadow:
+            0 3px 12px rgba(114, 47, 228, 0.55),
+            0 2px 5px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    18% {
+        transform: perspective(500px) rotateX(0deg) rotateY(0deg) scale(1.1);
+        box-shadow:
+            0 10px 28px rgba(114, 47, 228, 0.85),
+            0 5px 14px rgba(0, 0, 0, 0.4),
+            inset 0 2px 0 rgba(255, 255, 255, 0.35),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    36% {
+        transform: perspective(500px) rotateX(14deg) rotateY(20deg) scale(1.06);
+        box-shadow:
+            6px 12px 22px rgba(114, 47, 228, 0.65),
+            2px 6px 10px rgba(0, 0, 0, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.25),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    52% {
+        transform: perspective(500px) rotateX(-8deg) rotateY(-12deg) scale(1.04);
+        box-shadow:
+            -4px 8px 18px rgba(114, 47, 228, 0.6),
+            0 4px 10px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    65% {
+        transform: perspective(500px) rotateX(0deg) rotateY(180deg) scale(1.07);
+        box-shadow:
+            0 8px 24px rgba(114, 47, 228, 0.78),
+            0 4px 12px rgba(0, 0, 0, 0.38),
+            inset 0 2px 0 rgba(255, 255, 255, 0.3),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+    }
+
+    80% {
+        transform: perspective(500px) rotateX(0deg) rotateY(360deg) scale(1.09);
+        box-shadow:
+            0 10px 28px rgba(114, 47, 228, 0.85),
+            0 5px 14px rgba(0, 0, 0, 0.42),
+            inset 0 2px 0 rgba(255, 255, 255, 0.35),
+            inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    100% {
+        transform: perspective(500px) rotateX(0deg) rotateY(360deg) scale(1);
+        box-shadow:
+            0 3px 12px rgba(114, 47, 228, 0.55),
+            0 2px 5px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2),
+            inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+    }
+}
+
 .dc-tabs {
     position: relative;
     display: grid;
@@ -254,6 +319,12 @@
             'Segoe UI',
             sans-serif !important;
         font-size: 14px !important;
+        border-radius: 5px !important;
+        position: relative;
+        z-index: 1;
+        animation: dc-tab-active-3d 7s ease-in-out infinite !important;
+        transform-origin: center center !important;
+        will-change: transform, box-shadow !important;
 
         // Active tab text - white and bold
         * {
