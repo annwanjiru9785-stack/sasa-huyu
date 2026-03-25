@@ -638,22 +638,22 @@ export default class OverUnderStore {
     }
 
     analyzeAndExecuteDiffers() {
-        if (this._tick_prices.length < 5 || this.is_purchasing) return;
+        if (this.tick_history.length < 5 || this.is_purchasing) return;
 
-        const prices = this._tick_prices;
-        const n = prices.length;
-        const curr_price = prices[n - 1];
-        const prev_price = prices[n - 2];
+        const digits = this.tick_history;
+        const n = digits.length;
+        const curr_digit = digits[n - 1];
+        const prev_digit = digits[n - 2];
 
-        if (curr_price === prev_price) return;
+        if (curr_digit === prev_digit) return;
 
-        const curr_direction: 'up' | 'down' = curr_price > prev_price ? 'up' : 'down';
+        const curr_direction: 'up' | 'down' = curr_digit > prev_digit ? 'up' : 'down';
         const surge_direction: 'up' | 'down' = curr_direction === 'up' ? 'down' : 'up';
 
         let surge_count = 0;
         for (let i = n - 2; i >= 1; i--) {
-            if (prices[i] === prices[i - 1]) break;
-            const tick_dir: 'up' | 'down' = prices[i] > prices[i - 1] ? 'up' : 'down';
+            if (digits[i] === digits[i - 1]) break;
+            const tick_dir: 'up' | 'down' = digits[i] > digits[i - 1] ? 'up' : 'down';
             if (tick_dir === surge_direction) {
                 surge_count++;
             } else {
