@@ -390,8 +390,7 @@ export default class JournalStore {
     }
 
     clear() {
-        const client = this.core.client as RootStore['client'];
-        const { loginid } = client;
+        const loginid = this.core?.client?.loginid;
         
         this.unfiltered_messages = [];
 
@@ -404,20 +403,28 @@ export default class JournalStore {
         }
 
         if (clearAccountId) {
-            const stored_journals = getStoredItemsByKey(this.JOURNAL_CACHE, {});
-            delete stored_journals[clearAccountId];
-            setStoredItemsByKey(this.JOURNAL_CACHE, stored_journals);
-            console.log(`[Journal] ✅ Cleared journal messages from storage for ${clearAccountId}`);
+            try {
+                const stored_journals = getStoredItemsByKey(this.JOURNAL_CACHE, {});
+                delete stored_journals[clearAccountId];
+                setStoredItemsByKey(this.JOURNAL_CACHE, stored_journals);
+                console.log(`[Journal] ✅ Cleared journal messages from storage for ${clearAccountId}`);
+            } catch (error) {
+                console.error('[Journal] ❌ Error clearing journal storage:', error);
+            }
         }
         
-        if (isSpecialCRAccount(loginid)) {
+        if (loginid && isSpecialCRAccount(loginid)) {
             const demoAccountId = this.getDemoAccountId();
             if (demoAccountId) {
-                const stored_journals = getStoredItemsByKey(this.JOURNAL_CACHE, {});
-                if (stored_journals[demoAccountId]) {
-                    delete stored_journals[demoAccountId];
-                    setStoredItemsByKey(this.JOURNAL_CACHE, stored_journals);
-                    console.log(`[Journal] ✅ Cleared journal messages from storage for demo account ${demoAccountId}`);
+                try {
+                    const stored_journals = getStoredItemsByKey(this.JOURNAL_CACHE, {});
+                    if (stored_journals[demoAccountId]) {
+                        delete stored_journals[demoAccountId];
+                        setStoredItemsByKey(this.JOURNAL_CACHE, stored_journals);
+                        console.log(`[Journal] ✅ Cleared journal messages from storage for demo account ${demoAccountId}`);
+                    }
+                } catch (error) {
+                    console.error('[Journal] ❌ Error clearing demo journal storage:', error);
                 }
             }
         }
@@ -430,41 +437,45 @@ export default class JournalStore {
         const disposeWriteJournalMessageListener = reaction(
             () => this.unfiltered_messages,
             unfiltered_messages => {
-                console.log('[Journal] 💾 Saving journals to storage. Messages count:', unfiltered_messages.length);
-                const stored_journals = getStoredItemsByKey(this.JOURNAL_CACHE, {});
-                const currentLoginId = client?.loginid as string;
-                console.log('[Journal] 💾 Current loginid:', currentLoginId);
-                
-                // CRITICAL: Determine which account to save under based on what's displayed
-                // If show_as_cr is set, save under CR6779123 (independent from demo)
-                // Otherwise, save under the actual loginid
-                const showAsCR = typeof window !== 'undefined' ? localStorage.getItem('show_as_cr') : null;
-                const isSpecialCR = showAsCR === 'CR6779123';
-                
-                let saveAccountId = currentLoginId;
-                if (isSpecialCR && showAsCR) {
-                    // If special CR is displayed, save messages under CR6779123 (independent from demo)
-                    saveAccountId = showAsCR;
-                    console.log('[Journal] 💾 Special CR displayed - saving under CR6779123 for independence');
-                } else if (currentLoginId && isSpecialCRAccount(currentLoginId)) {
-                    // If loginid is CR6779123 directly, save under it
-                    saveAccountId = currentLoginId;
-                    console.log('[Journal] 💾 Saving under CR6779123');
-                } else {
-                    // Normal account - save under actual loginid
-                    saveAccountId = currentLoginId;
-                    console.log('[Journal] 💾 Saving under normal account:', saveAccountId);
+                try {
+                    console.log('[Journal] 💾 Saving journals to storage. Messages count:', unfiltered_messages.length);
+                    const stored_journals = getStoredItemsByKey(this.JOURNAL_CACHE, {});
+                    const currentLoginId = client?.loginid as string;
+                    console.log('[Journal] 💾 Current loginid:', currentLoginId);
+                    
+                    // CRITICAL: Determine which account to save under based on what's displayed
+                    // If show_as_cr is set, save under CR6779123 (independent from demo)
+                    // Otherwise, save under the actual loginid
+                    const showAsCR = typeof window !== 'undefined' ? localStorage.getItem('show_as_cr') : null;
+                    const isSpecialCR = showAsCR === 'CR6779123';
+                    
+                    let saveAccountId = currentLoginId;
+                    if (isSpecialCR && showAsCR) {
+                        // If special CR is displayed, save messages under CR6779123 (independent from demo)
+                        saveAccountId = showAsCR;
+                        console.log('[Journal] 💾 Special CR displayed - saving under CR6779123 for independence');
+                    } else if (currentLoginId && isSpecialCRAccount(currentLoginId)) {
+                        // If loginid is CR6779123 directly, save under it
+                        saveAccountId = currentLoginId;
+                        console.log('[Journal] 💾 Saving under CR6779123');
+                    } else {
+                        // Normal account - save under actual loginid
+                        saveAccountId = currentLoginId;
+                        console.log('[Journal] 💾 Saving under normal account:', saveAccountId);
+                    }
+                    
+                    // Save messages under the correct account
+                    if (saveAccountId) {
+                        stored_journals[saveAccountId] = unfiltered_messages?.slice(0, 5000) ?? [];
+                        console.log(`[Journal] ✅ Saved ${stored_journals[saveAccountId].length} messages under ${saveAccountId}`);
+                    } else {
+                        console.log('[Journal] ❌ No saveAccountId, not saving');
+                    }
+                    
+                    setStoredItemsByKey(this.JOURNAL_CACHE, stored_journals);
+                } catch (error) {
+                    console.error('[Journal] 💾 Error saving journals to storage:', error);
                 }
-                
-                // Save messages under the correct account
-                if (saveAccountId) {
-                    stored_journals[saveAccountId] = unfiltered_messages?.slice(0, 5000) ?? [];
-                    console.log(`[Journal] ✅ Saved ${stored_journals[saveAccountId].length} messages under ${saveAccountId}`);
-                } else {
-                    console.log('[Journal] ❌ No saveAccountId, not saving');
-                }
-                
-                setStoredItemsByKey(this.JOURNAL_CACHE, stored_journals);
             }
         );
 
