@@ -31,6 +31,7 @@ class MakotiMagicStore {
             handleTick: action,
             loadBot: action,
             setBotLoadCallback: action,
+            dispose: action,
         });
     }
 

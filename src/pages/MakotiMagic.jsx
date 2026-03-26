@@ -44,7 +44,7 @@ const MakotiMagic = observer(() => {
     };
 
     const confidencePercent = prediction?.confidence ? (prediction.confidence * 100).toFixed(0) : '0';
-    const showLoadButton = prediction?.predictedDigit !== null && !is_loading;
+    const showLoadButton = prediction && prediction.predictedDigit !== null && prediction.predictedDigit !== undefined && !is_loading;
 
     return (
         <div className='makoti-magic'>
@@ -100,9 +100,9 @@ const MakotiMagic = observer(() => {
                     <div className='mm-prediction'>
                         <div className='mm-prediction__title'>Predicted Digit</div>
                         <div className='mm-prediction__digit'>
-                            {prediction?.predictedDigit !== null ? prediction?.predictedDigit : '-'}
+                            {prediction && prediction.predictedDigit !== null && prediction.predictedDigit !== undefined ? prediction.predictedDigit : '-'}
                         </div>
-                        {prediction?.predictedDigit !== null && (
+                        {prediction && prediction.predictedDigit !== null && prediction.predictedDigit !== undefined && (
                             <div className='mm-prediction__meta'>
                                 <div className='mm-confidence'>
                                     <TrendingUp size={12} />
