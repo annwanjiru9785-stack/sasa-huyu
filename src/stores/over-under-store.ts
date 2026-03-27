@@ -871,7 +871,7 @@ export default class OverUnderStore {
                 runInAction(() => {
                     this.differs_v2_confidence_wait_start = now;
                 });
-                this.addLog(`DiffersV2: Low confidence (${(confidence * 100).toFixed(0)}% < 50%). Waiting for better prediction...`);
+                this.addLog(`DiffersV2: Low confidence (${(confidence * 100).toFixed(0)}% < 60%). Waiting for better prediction...`);
             } else {
                 this.addLog(`DiffersV2: Low confidence (${(waitTime/1000).toFixed(0)}s/${MAX_WAIT_MS/1000}s). Still analyzing...`);
             }
