@@ -872,6 +872,8 @@ export default class OverUnderStore {
         runInAction(() => {
             this.differs_v2_predicted_digit = top9Digits[0];
             this.differs_v2_post_trade_ticks = 0;
+            this.differs_v2_analysis_ready = false;
+            this.differs_v2_5s_analysis_pending = true;
         });
 
         this.addLog(`DiffersV2: Next tick prediction → DIFFER on ${differsDigit}`);
@@ -893,7 +895,8 @@ export default class OverUnderStore {
                 this.differs_predicted_top4 = [];
                 this.differs_v2_predicted_digit = null;
                 this.differs_v2_analysis_ready = false;
-                this.differs_v2_5s_analysis_pending = true;
+                this.differs_v2_5s_analysis_pending = false;
+                this.differs_v2_post_trade_ticks = 0;
                 this.is_processing_round = false;
             });
 
@@ -906,6 +909,38 @@ export default class OverUnderStore {
                     this.stake = this.initial_stake;
                     this.addLog(`DiffersV2: Win! Stake reset to ${this.stake}`);
                 }
+            } else {
+                this.stake = Number((this.stake * this.martingale).toFixed(2));
+                this.addLog(`DiffersV2: Loss! Martingale - New stake: ${this.stake}`);
+            }
+
+            this.contract_results.clear();
+            
+            if (this.is_volatility_changer && this.is_automate) {
+                this.addLog(`DiffersV2: Trade settled. Auto-switch enabled. Scanning volatility (7s)...`);
+                this.startVolatilityAnalysis();
+            } else {
+                this.addLog(`DiffersV2: Trade settled. Re-analyzing (7s)...`);
+                
+                setTimeout(() => {
+                    if (this.is_auto_running && this.is_differs_v2_mode) {
+                        runInAction(() => {
+                            this.differs_v2_analysis_ready = true;
+                            this.differs_v2_5s_analysis_pending = false;
+                            this.is_processing_round = false;
+                        });
+                        this.addLog(`DiffersV2: Analysis complete. Predicting & executing...`);
+                        this.analyzeAndExecuteDiffersV2();
+                    }
+                }, 7000);
+            }
+
+            if (!this.is_turbo) {
+                this.setIsAutoRunning(false);
+                this.addLog('Turbo Mode is off. Stopping auto-run.');
+            }
+            return;
+        }
             } else {
                 this.stake = Number((this.stake * this.martingale).toFixed(2));
                 this.addLog(`DiffersV2: Loss! Martingale - New stake: ${this.stake}`);
