@@ -302,7 +302,7 @@ export default class OverUnderStore {
                     
                     setTimeout(() => {
                         if (this.is_auto_running && this.is_differs_v2_mode) {
-                            this.addLog("Differs V2: Analyzing new symbol data (5s)...");
+                            this.addLog("Differs V2: Analyzing new symbol data (7s)...");
                             runInAction(() => {
                                 this.differs_v2_analysis_ready = true;
                                 this.differs_v2_5s_analysis_pending = false;
@@ -311,7 +311,7 @@ export default class OverUnderStore {
                             this.addLog("Differs V2: Analysis complete. Predicting & executing...");
                             this.analyzeAndExecuteDiffersV2();
                         }
-                    }, 5000);
+                    }, 7000);
                     return;
                 }
             } else {
@@ -435,7 +435,7 @@ export default class OverUnderStore {
                     this.differs_v2_predicted_digit = null;
                     this.is_processing_round = false;
                 });
-                this.addLog("Tool started. Differs V2: Analyzing historical data (5s)...");
+                this.addLog("Tool started. Differs V2: Analyzing historical data (7s)...");
                 
                 setTimeout(() => {
                     if (this.is_auto_running && this.is_differs_v2_mode) {
@@ -446,7 +446,7 @@ export default class OverUnderStore {
                         this.addLog("Differs V2: Analysis complete. Predicting & executing...");
                         this.analyzeAndExecuteDiffersV2();
                     }
-                }, 5000);
+                }, 7000);
             } else {
                 this.addLog("Tool started. Waiting for trigger...");
                 if (this.is_volatility_changer) this.startVolatilityAnalysis();
@@ -919,7 +919,7 @@ export default class OverUnderStore {
 
             this.contract_results.clear();
             
-            this.addLog(`DiffersV2: Trade settled. Re-analyzing (5s)...`);
+            this.addLog(`DiffersV2: Trade settled. Re-analyzing (7s)...`);
             
             setTimeout(() => {
                 if (this.is_auto_running && this.is_differs_v2_mode) {
@@ -936,7 +936,7 @@ export default class OverUnderStore {
                         this.analyzeAndExecuteDiffersV2();
                     }
                 }
-            }, 5000);
+            }, 7000);
 
             if (!this.is_turbo) {
                 this.setIsAutoRunning(false);

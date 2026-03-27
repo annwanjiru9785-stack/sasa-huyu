@@ -493,6 +493,25 @@ export function predictNextDigits(history: number[]): PredictionResult {
 
     const final = normaliseScores(combined);
 
+    const last10Freq = getRecentFrequency(history, 10);
+    const last20Freq = getRecentFrequency(history, 20);
+    
+    const recencyBoost = Array(10).fill(0) as number[];
+    last10Freq.forEach((count, digit) => {
+        if (count > 0) recencyBoost[digit] += count * 2.5;
+    });
+    last20Freq.forEach((count, digit) => {
+        if (count > 0) recencyBoost[digit] += count * 1.0;
+    });
+    
+    const recencySum = recencyBoost.reduce((a, b) => a + b, 0);
+    if (recencySum > 0) {
+        recencyBoost = recencyBoost.map(v => v / recencySum);
+        final.forEach((score, digit) => {
+            final[digit] = score * 0.7 + recencyBoost[digit] * 0.3;
+        });
+    }
+
     const rankedDigits = final
         .map((score, digit) => ({ digit, score }))
         .sort((a, b) => b.score - a.score);
@@ -508,7 +527,7 @@ export function predictNextDigits(history: number[]): PredictionResult {
     const overallConfidence = Math.min((dominance * 15 + tier1AgreementCount * 0.15 + tier2AgreementCount * 0.08) / 2, 1);
 
     const top4Str = rankedDigits.slice(0, 4).map(d => `${d.digit}(${(d.score * 100).toFixed(0)}%)`).join(' ');
-    const summary = `Predict: ${predictedDigit} (${(rankedDigits[0].score * 100).toFixed(0)}%), Top4: [${top4Str}], Conf:${(overallConfidence * 100).toFixed(0)}%`;
+    const summary = `Predict NEXT tick: ${predictedDigit} (${(rankedDigits[0].score * 100).toFixed(0)}%), Top4: [${top4Str}], Conf:${(overallConfidence * 100).toFixed(0)}%`;
 
     return { top4Digits, rankedDigits, overallConfidence, summary, predictedDigit };
 }
