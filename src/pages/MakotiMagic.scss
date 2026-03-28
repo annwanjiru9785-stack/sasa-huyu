@@ -1,3 +1,5 @@
+@import 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=Space+Mono&display=swap';
+
 .makoti-magic {
     background-color: #0a0a0f;
     color: #f0f0f0;
@@ -28,7 +30,7 @@
             font-size: 14px;
             color: #ffcc00;
             animation: matrix-fade 3s infinite;
-            font-family: monospace;
+            font-family: 'Space Mono', monospace;
         }
     }
 
@@ -41,9 +43,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 16px;
-        border-bottom: 1px solid #333;
-        background: rgba(20, 20, 25, 0.9);
+        padding: 12px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(10, 10, 15, 0.8);
         backdrop-filter: blur(10px);
         position: sticky;
         top: 0;
@@ -62,30 +64,205 @@
     }
 
     .mm-panel {
-        background: linear-gradient(145deg, #1a1a24, #12121a);
-        border: 1px solid #333;
-        border-radius: 12px;
+        background: rgba(20, 20, 25, 0.75);
+        backdrop-filter: blur(16px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.125);
+        border-radius: 16px;
         padding: 24px;
         width: 100%;
         max-width: 500px;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
         max-height: calc(100vh - 120px);
         overflow-y: auto;
     }
 
+    .mm-panel__title {
+        font-size: 16px;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 204, 0, 0.2);
+        padding-bottom: 16px;
+        margin-bottom: 24px;
+        color: #ffcc00;
+        text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+    }
+
+    .mm-row-label {
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .mm-f {
+        background-color: rgba(0, 0, 0, 0.3);
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 10px 14px;
+        transition: all 0.2s ease-in-out;
+        display: flex;
+        align-items: center;
+
+        &:hover {
+            border-color: rgba(255, 204, 0, 0.5);
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
+        }
+    }
+
+    .mm-fl {
+        font-size: 12px;
+        color: #888;
+        margin-right: 8px;
+    }
+
+    .mm-sel {
+        background-color: transparent;
+        border: none;
+        color: #f0f0f0;
+        font-size: 14px;
+        flex: 1;
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    .mm-prediction {
+        margin: 24px 0;
+        text-align: center;
+        padding: 24px;
+        background: radial-gradient(ellipse at center, rgba(255, 204, 0, 0.1) 0%, transparent 70%);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 204, 0, 0.2);
+        position: relative;
+
+        &::before, &::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: rgba(255, 204, 0, 0.4);
+            border-style: solid;
+        }
+        &::before {
+            top: -1px;
+            left: -1px;
+            border-width: 2px 0 0 2px;
+            border-top-left-radius: 12px;
+        }
+        &::after {
+            bottom: -1px;
+            right: -1px;
+            border-width: 0 2px 2px 0;
+            border-bottom-right-radius: 12px;
+        }
+
+        &__title {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        &__digit {
+            font-size: 80px;
+            font-weight: 700;
+            color: #444;
+            text-shadow: none;
+            transition: all 0.3s ease;
+            font-family: 'Space Mono', monospace;
+
+            &--active {
+                color: #ffcc00;
+                text-shadow: 0 0 30px rgba(255, 204, 0, 0.6), 0 0 60px rgba(255, 204, 0, 0.3);
+                animation: digit-glow 2s ease-in-out infinite;
+            }
+        }
+    }
+
+    @keyframes digit-glow {
+        0%, 100% { text-shadow: 0 0 30px rgba(255, 204, 0, 0.6), 0 0 60px rgba(255, 204, 0, 0.3); }
+        50% { text-shadow: 0 0 40px rgba(255, 204, 0, 0.8), 0 0 80px rgba(255, 204, 0, 0.5); }
+    }
+    
     .mm-cta-wrap {
-        margin-top: 24px;
+        margin-top: auto;
+        padding-top: 24px;
         display: flex;
         flex-direction: column;
         gap: 12px;
         position: sticky;
-        bottom: 0;
-        background: linear-gradient(180deg, transparent, #15151f 40%);
-        padding-top: 20px;
-        padding-bottom: 5px;
+        bottom: -25px; 
+        background: linear-gradient(180deg, transparent, rgba(20, 20, 25, 0.75) 40%);
+    }
+    
+    .mm-cta {
+        background: linear-gradient(145deg, #ffdd44, #ffaa00);
+        color: #1a1a1a;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 14px 20px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 2px 15px rgba(255, 204, 0, 0.3);
+        transform: perspective(1px) translateY(0);
+
+        &:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        &:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(255, 204, 0, 0.5);
+        }
+        
+        &:active:not(:disabled) {
+             transform: translateY(-1px);
+             box-shadow: 0 3px 15px rgba(255, 204, 0, 0.4);
+        }
+
+        &--stop {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: #fff;
+            box-shadow: 0 2px 15px rgba(231, 76, 60, 0.3);
+
+            &:hover:not(:disabled) {
+                box-shadow: 0 6px 25px rgba(231, 76, 60, 0.5);
+            }
+        }
     }
 
-    /* Other styles remain the same */
+    .mm-panel::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .mm-panel::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.2);
+        border-radius: 4px;
+    }
+
+    .mm-panel::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 204, 0, 0.5);
+        border-radius: 4px;
+        
+        &:hover {
+            background-color: rgba(255, 204, 0, 0.8);
+        }
+    }
 }
