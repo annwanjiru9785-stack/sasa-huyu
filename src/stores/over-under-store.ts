@@ -1009,10 +1009,19 @@ export default class OverUnderStore {
 
         if (this.is_differs_v2_mode) {
             if (this.is_tatu_bora_mode) {
-                // For Tatu Bora, the stake always resets.
-                this.stake = this.initial_stake;
-                const result_text = all_loss ? 'Loss' : 'Win';
-                this.addLog(`Tatu Bora: ${result_text}! Stake reset to initial: ${this.stake.toFixed(2)}`);
+                if (all_loss) {
+                    this.stake = this.initial_stake;
+                    this.addLog(`Tatu Bora: Loss! Stake reset to initial: ${this.stake.toFixed(2)}`);
+                } else { // Win
+                    if (this.is_2term_mode) {
+                        const nextStake = Number((this.stake + roundProfit).toFixed(2));
+                        this.stake = nextStake;
+                        this.addLog(`Tatu Bora: Win! 2-term ON - New Stake: ${this.stake.toFixed(2)}`);
+                    } else {
+                        this.stake = this.initial_stake;
+                        this.addLog(`Tatu Bora: Win! Stake reset to initial: ${this.stake.toFixed(2)}`);
+                    }
+                }
             } else {
                 // Logic for other DiffersV2 modes (e.g., Nne Kwisha, standard double)
                 if (all_loss) {
