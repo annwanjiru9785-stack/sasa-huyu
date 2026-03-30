@@ -1,60 +1,18 @@
+
 import { LocalStorageConstants, LocalStorageUtils, URLUtils } from '@deriv-com/utils';
 import { isStaging } from '../url/helpers';
 
-export const APP_IDS = {
-    LOCALHOST: 36300,
-    TMP_STAGING: 64584,
-    STAGING: 29934,
-    STAGING_BE: 29934,
-    STAGING_ME: 29934,
-    PRODUCTION: 117164,
-    PRODUCTION_BE: 117164,
-    PRODUCTION_ME: 117164,
-};
+// This is the single, correct App ID for this application.
+const APP_ID = 101585;
 
 export const livechat_license_id = 12049137;
 export const livechat_client_id = '66aa088aad5a414484c1fd1fa8a5ace7';
 
-export const domain_app_ids = {
-    'dbot12.netlify.app': 80491,
-    'kingstraders.site': 85821,
-    'www.kingstraders.site': 85821,
-    'wallacetraders.site': 86003,
-    'www.wallacetraders.site': 86003,
-    'legoo.site': 85150,
-    'www.legoo.site': 85150,
-    'makotitraderss.vercel.app': 101585,
-    'www.makotitraderss.vercel.app': 101585,
-    'www.kenyanhennessy.site': 97088,
-    'kenyanhennessy.site': 97088,
-    'masterhunter.site': 96223,
-    'developmentviewport.netlify.app': 97311,
-    'www.developmentviewport.netlify.app': 97311,
-    'qtropwinninghub.vercel.app': 107823,
-    'www.qtropwinninghub.vercel.app': 107823,
-    'qtropwinnershub.site': 107823,
-    'www.qtropwinnershub.site': 107823,
-};
-
-export const getCurrentProductionDomain = () => {
-    // If it's staging, return null to use staging app ID
-    if (/^staging\./.test(window.location.hostname)) {
-        return null;
-    }
-
-    // Check if domain is explicitly configured
-    const exactMatch = Object.keys(domain_app_ids).find(domain => window.location.hostname === domain);
-    if (exactMatch) {
-        return exactMatch;
-    }
-
-    // For any other production domain, return the hostname to use production app ID
-    return window.location.hostname;
-};
+// All other App ID and domain-switching logic has been removed to ensure consistency.
 
 export const isProduction = () => {
-    const all_domains = Object.keys(domain_app_ids).map(domain => `(www\\.)?${domain.replace('.', '\\.')}`);
-    return new RegExp(`^(${all_domains.join('|')})$`, 'i').test(window.location.hostname);
+    // This can be simplified as we no longer rely on domain for App ID.
+    return !/localhost|binary\.sx|pages\.dev/i.test(window.location.hostname);
 };
 
 export const isTestLink = () => {
@@ -70,66 +28,33 @@ export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname)
 const getDefaultServerURL = () => {
     const server = 'ws';
     const server_url = `${server}.derivws.com`;
-
     return server_url;
 };
 
-export const getDefaultAppIdAndUrl = () => {
-    const server_url = getDefaultServerURL();
-
-    if (isTestLink()) {
-        return { app_id: APP_IDS.LOCALHOST, server_url };
-    }
-
-    const current_domain = getCurrentProductionDomain() ?? '';
-    const app_id = domain_app_ids[current_domain as keyof typeof domain_app_ids] ?? APP_IDS.PRODUCTION;
-
-    return { app_id, server_url };
+/**
+ * Returns the App ID for the application.
+ * This function is now simplified to always return the single, correct App ID.
+ */
+export const getAppId = () => {
+    // Set the app_id in localStorage for other parts of the app that might read it.
+    window.localStorage.setItem('config.app_id', String(APP_ID));
+    return APP_ID;
 };
 
-// Default app ID - always 117164
-const DEFAULT_APP_ID = 117164;
-
 /**
- * No-op function for backward compatibility - app ID no longer switches
+ * All App ID switching logic has been disabled and removed.
+ * This function is now a no-op for backward compatibility.
  */
 export const switchAppIdAfterTrade = () => {
-    // App ID switching is disabled - always use 117164
+    // No-op. The App ID is now constant.
     return null;
 };
 
-// Force update app ID in localStorage on app initialization
+/**
+ * This function is a no-op as the App ID is now constant.
+ */
 export const forceUpdateAppId = () => {
-    // Always set to default app ID 117164
-    window.localStorage.setItem('config.app_id', DEFAULT_APP_ID.toString());
-
-    return DEFAULT_APP_ID;
-};
-
-export const getAppId = () => {
-    let app_id = null;
-
-    if (isStaging()) {
-        app_id = APP_IDS.STAGING;
-    } else if (isTestLink()) {
-        app_id = APP_IDS.LOCALHOST;
-    } else {
-        const current_domain = getCurrentProductionDomain();
-
-        // If domain is explicitly configured, use that app ID
-        if (current_domain && domain_app_ids[current_domain as keyof typeof domain_app_ids]) {
-            app_id = domain_app_ids[current_domain as keyof typeof domain_app_ids];
-        } else {
-            // For production domains, always use default app ID 117164
-            app_id = DEFAULT_APP_ID;
-        }
-    }
-
-    // Always force update localStorage with the current app ID
-    // This ensures the browser always uses the current app_id
-    window.localStorage.setItem('config.app_id', app_id.toString());
-
-    return app_id;
+    return getAppId();
 };
 
 export const getSocketURL = () => {
@@ -137,7 +62,6 @@ export const getSocketURL = () => {
     if (local_storage_server_url) return local_storage_server_url;
 
     const server_url = getDefaultServerURL();
-
     return server_url;
 };
 
