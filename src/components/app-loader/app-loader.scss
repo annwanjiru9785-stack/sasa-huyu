@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap');
 
 .gta-loader {
     position: fixed;
@@ -87,6 +87,9 @@
     animation: dolly-in 10s ease-out forwards, logo-glitch 3.5s infinite alternate;
     animation-delay: 1.5s;
     opacity: 0; /* Starts invisible */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .logo-text {
@@ -102,6 +105,55 @@
         0 0 50px #0ff;
     animation: logo-flash 10s forwards;
     animation-delay: 1.5s;
+    margin-bottom: 1rem;
+}
+
+.subtitle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.subtitle-item {
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    opacity: 0;
+    animation: subtitle-fade-in 1s ease-out forwards;
+
+    &:nth-child(1) {
+        color: #ffab00; // Amber
+        animation-delay: 3s;
+        text-shadow: 0 0 5px #ffab00;
+    }
+    &:nth-child(2) {
+        color: #00e5ff; // Cyan
+        animation-delay: 3.5s;
+        text-shadow: 0 0 5px #00e5ff;
+    }
+    &:nth-child(3) {
+        color: #76ff03; // Light Green
+        animation-delay: 4s;
+        text-shadow: 0 0 5px #76ff03;
+    }
+    &:nth-child(4) {
+        color: #ff4081; // Pink
+        animation-delay: 4.5s;
+        text-shadow: 0 0 5px #ff4081;
+    }
+}
+
+@keyframes subtitle-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 0.8;
+        transform: translateY(0) scale(1);
+    }
 }
 
 @keyframes logo-flash {
@@ -109,7 +161,6 @@
     0.2% { opacity: 0; } 
     100% { opacity: 1; }
 }
-
 
 @keyframes dolly-in {
     from {
@@ -175,4 +226,31 @@
     box-shadow: inset 0 0 200px #000;
     z-index: 16;
     pointer-events: none;
+}
+
+.scanlines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(20, 20, 20, 0) 0%,
+        rgba(20, 20, 20, 0.1) 50%,
+        rgba(20, 20, 20, 0) 100%
+    );
+    background-size: 100% 4px;
+    z-index: 17;
+    pointer-events: none;
+    animation: scanline-move 8s linear infinite;
+}
+
+@keyframes scanline-move {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 0 -100px;
+    }
 }

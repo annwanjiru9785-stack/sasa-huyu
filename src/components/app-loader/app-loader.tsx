@@ -79,10 +79,17 @@ const AppLoader: React.FC<AppLoaderProps> = ({ onLoadingComplete }) => {
 
             <div className='logo-container'>
                 <h1 className='logo-text'>{logoText}</h1>
+                <div className='subtitle-container'>
+                    <p className='subtitle-item'>Powered by Deriv API</p>
+                    <p className='subtitle-item'>Advanced AI Trading</p>
+                    <p className='subtitle-item'>Automated Strategies</p>
+                    <p className='subtitle-item'>Version 2.0</p>
+                </div>
             </div>
 
             <div className='film-grain'></div>
             <div className='vignette'></div>
+            <div className='scanlines'></div>
         </div>
     );
 };
