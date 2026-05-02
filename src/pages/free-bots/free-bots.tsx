@@ -55,8 +55,8 @@ const FreeBots = observer(() => {
                 'Advanced Under 8 trading bot with R67 recovery system. Designed for optimal performance with sophisticated pattern recognition and recovery.',
             'MAKOTIV3RISE FALL':
                 'Premium Rise/Fall trading bot with MACD analysis and intelligent recovery. Optimized for consistent returns in trending markets.',
-                            'MAKOTIRISE FALLV4':
-                                'Latest version of the Makoti Rise Fall bot. Enhanced with improved entry signals and advanced recovery management for maximum stability.',
+            'MAKOTI RISE/FALL V4':
+                'Latest version of the Makoti Rise/Fall bot. Enhanced with improved entry signals and advanced recovery management for maximum stability.',
                         };
 
         // Try exact match first
@@ -154,8 +154,8 @@ const FreeBots = observer(() => {
 
                 // Update skeletons to our explicit list
                 const skeletonBots: BotData[] = manifest.map(item => {
-                    const botName = (item.name || item.file.replace('.xml', '')).replace(/[_-]/g, ' ');
-                    const isPremiumPlus = botName.includes('MAKOTIRISE FALLV4');
+                    const botName = (item.name || item.file.replace('.xml', '')).replace(/[_-]/g, ' ').replace('MAKOTIRISE FALLV4', 'MAKOTI RISE/FALL V4');
+                    const isPremiumPlus = botName.includes('MAKOTI RISE/FALL V4');
                     return {
                         name: botName,
                         description: getBotDescription(botName),
@@ -176,8 +176,8 @@ const FreeBots = observer(() => {
                     try {
                         const xml = await fetchXmlWithCache(item.file);
                         if (xml) {
-                            const botName = (item.name || item.file.replace('.xml', '')).replace(/[_-]/g, ' ');
-                            const isPremiumPlus = botName.includes('MAKOTIRISE FALLV4');
+                            const botName = (item.name || item.file.replace('.xml', '')).replace(/[_-]/g, ' ').replace('MAKOTIRISE FALLV4', 'MAKOTI RISE/FALL V4');
+                            const isPremiumPlus = botName.includes('MAKOTI RISE/FALL V4');
                             loadedBots.push({
                                 name: botName,
                                 description: getBotDescription(botName),
