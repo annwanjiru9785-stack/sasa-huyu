@@ -23,45 +23,105 @@ export default Engine =>
         }
 
         async virtualPurchase(contract_type) {
-            console.log('🤖 [VIRTUAL HOOK] Executing VIRTUAL trade');
+            console.log('🤖 [VIRTUAL HOOK] Executing realistic virtual trade simulation.');
             const { id } = this.selectProposal(contract_type);
             const proposal = this.data.proposals.find(p => p.id === id);
-
+        
             if (!proposal) {
-                throw new Error('Proposal not found for virtual trade');
+                throw new Error('Proposal not found for virtual trade simulation.');
             }
-
-            // Simulate purchase successful
-            this.store.dispatch(purchaseSuccessful());
-
-            // Simulate contract results after a short delay (e.g., 2 seconds for testing, but ideally we should wait for tick)
-            // For a better simulation, we can use the actual tick data, but here we'll just simulate a win/loss
-            // to fulfill the logic of switching to real trade.
-            // A more accurate way is to subscribe to ticks and check the result.
-            // But the user said "starts executing trades but in virtual hock without my money".
-            // Let's use a simple random simulation or wait for next tick.
             
-            // Listen for the next tick to determine the result
-            const unsubscribe = api_base.api.onMessage().subscribe(({ data }) => {
-                if (data.msg_type === 'tick' && data.tick.symbol === proposal.symbol) {
-                    unsubscribe.unsubscribe();
-                    
-                    // Simple logic: if the next tick price is higher than current, it's a 'win' for RISE
-                    // This is a basic simulation of the trade outcome without real money
-                    const is_win = Math.random() > 0.5; 
-                    const simulated_contract = {
-                        ...proposal,
-                        profit: is_win ? Number(proposal.payout) - Number(proposal.ask_price) : -Number(proposal.ask_price),
-                        status: 'sold',
-                        transaction_ids: { buy: 'virtual_buy', sell: 'virtual_sell' },
-                        is_virtual: true,
-                        display_name: is_win ? 'Virtual Won' : 'Virtual Loss'
-                    };
-                    this.updateVirtualTotals(simulated_contract);
-                }
-            });
-            api_base.pushSubscription(unsubscribe);
+            this.store.dispatch(purchaseSuccessful());
+        
+            const {
+                duration,
+                duration_unit,
+                contract_type: trade_contract_type,
+                symbol,
+                prediction,
+            } = this.tradeOptions;
+        
+            const entry_spot = proposal.spot;
+        
+            const onContractEnd = (end_spot) => {
+                let is_win;
+                const last_digit = Number(String(end_spot).slice(-1));
 
+                switch (trade_contract_type) {
+                    case 'CALL':
+                        is_win = end_spot > entry_spot;
+                        break;
+                    case 'PUT':
+                        is_win = end_spot < entry_spot;
+                        break;
+                    case 'DIGITMATCH':
+                        is_win = last_digit === prediction;
+                        break;
+                    case 'DIGITDIFF':
+                        is_win = last_digit !== prediction;
+                        break;
+                    case 'DIGITOVER':
+                        is_win = last_digit > prediction;
+                        break;
+                    case 'DIGITUNDER':
+                        is_win = last_digit < prediction;
+                        break;
+                    case 'DIGITODD':
+                        is_win = last_digit % 2 !== 0;
+                        break;
+                    case 'DIGITEVEN':
+                        is_win = last_digit % 2 === 0;
+                        break;
+                    default:
+                        console.log(`[VIRTUAL HOOK] Using random simulation for ${trade_contract_type}.`);
+                        is_win = Math.random() > 0.5;
+                        break;
+                }
+        
+                const simulated_contract = {
+                    ...proposal,
+                    profit: is_win ? (Number(proposal.payout) - Number(proposal.ask_price)) : -Number(proposal.ask_price),
+                    status: 'sold',
+                    entry_spot,
+                    exit_spot: end_spot,
+                    is_virtual: true,
+                };
+        
+                this.updateVirtualTotals(simulated_contract);
+            };
+        
+            if (duration_unit === 't') {
+                let tick_count = 0;
+                const tick_subscriber = api_base.api.onMessage().subscribe(({ data }) => {
+                    if (data.msg_type === 'tick' && data.tick.symbol === symbol) {
+                        tick_count++;
+                        if (tick_count >= duration) {
+                            tick_subscriber.unsubscribe();
+                            onContractEnd(data.tick.quote);
+                        }
+                    }
+                });
+                api_base.pushSubscription(tick_subscriber);
+                api_base.api.send({ ticks: symbol, subscribe: 1 });
+        
+            } else {
+                let duration_ms = duration * 1000;
+                if (duration_unit === 'm') {
+                    duration_ms *= 60;
+                }
+        
+                setTimeout(() => {
+                    const tick_subscriber = api_base.api.onMessage().subscribe(({ data }) => {
+                         if (data.msg_type === 'tick' && data.tick.symbol === symbol) {
+                            tick_subscriber.unsubscribe();
+                            onContractEnd(data.tick.quote);
+                         }
+                    });
+                    api_base.pushSubscription(tick_subscriber);
+                    api_base.api.send({ ticks: symbol, subscribe: 1 });
+                }, duration_ms);
+            }
+            
             return Promise.resolve();
         }
 
@@ -77,7 +137,7 @@ export default Engine =>
                     console.log('🤖 [VIRTUAL HOOK] THRESHOLD REACHED. Switching to REAL trades.');
                 }
             } else {
-                // User didn't specify what happens on virtual win, usually we stay in virtual
+                this.vh_state.loss_count = 0;
                 console.log('🤖 [VIRTUAL HOOK] Virtual win. Staying in virtual mode.');
             }
 
@@ -86,13 +146,14 @@ export default Engine =>
                 profit: contract.profit,
                 contract: {
                     ...contract,
-                    display_name: contract.profit > 0 ? localize('Virtual Won') : localize('Virtual Loss')
+                    display_name: win ? 'Virtual Won' : 'Virtual Loss'
                 },
                 accountID: 'VIRTUAL',
                 is_virtual: true
             });
 
-            // Trigger after purchase logic
+            this.renewProposalsOnPurchase();
+
             if (this.afterPromise) {
                 this.afterPromise();
             }
