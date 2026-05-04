@@ -57,6 +57,14 @@ export default Engine =>
             }
 
             this.store.dispatch(purchaseSuccessful());
+            
+            // In real trades, the state machine transitions to DURING_PURCHASE and waits for openContract: true.
+            // We must mimic this for virtual trades to satisfy the watchDuring(this.store) in index.js.
+            import('./state/actions').then(actions => {
+                if (actions.openContractReceived) {
+                    this.store.dispatch(actions.openContractReceived());
+                }
+            });
 
             const {
                 duration,
