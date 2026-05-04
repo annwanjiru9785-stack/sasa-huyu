@@ -347,11 +347,12 @@ export default class TransactionsStore {
             is_completed,
             run_id,
             date_start: data.date_start ? formatDate(data.date_start, 'YYYY-M-D HH:mm:ss [GMT]') : undefined,
-            entry_tick: data.entry_tick_display_value,
+            entry_tick: data.entry_tick_display_value || data.entry_tick || '',
             entry_tick_time: data.entry_tick_time ? formatDate(data.entry_tick_time, 'YYYY-M-D HH:mm:ss [GMT]') : undefined,
-            exit_tick: data.exit_tick_display_value,
+            exit_tick: data.exit_tick_display_value || data.exit_tick || '',
             exit_tick_time: data.exit_tick_time ? formatDate(data.exit_tick_time, 'YYYY-M-D HH:mm:ss [GMT]') : undefined,
-            profit: is_completed ? data.profit : 0,
+            profit: is_completed ? (Number(data.profit) || 0) : 0,
+            buy_price: Number(data.buy_price) || 0,
         } as TContractInfo & { original_transaction_ids?: { buy?: number; sell?: number } };
 
         if (same_contract_index === -1) {

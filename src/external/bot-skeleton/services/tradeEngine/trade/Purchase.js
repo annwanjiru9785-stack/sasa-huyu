@@ -163,18 +163,26 @@ export default Engine =>
             const virtual_id = 1000000000 + Math.floor(Math.random() * 900000000);
             const virtual_contract = {
                 ...contract,
-                buy_price: contract.ask_price,
-                sell_price: contract.profit > 0 ? contract.payout : 0,
+                buy_price: Number(contract.ask_price),
+                sell_price: contract.profit > 0 ? Number(contract.payout) : 0,
+                profit: Number(contract.profit),
                 transaction_ids: { buy: virtual_id, sell: virtual_id + 1 },
                 display_transaction_ids: { buy: String(virtual_id), sell: String(virtual_id + 1) },
                 entry_tick: contract.entry_spot,
+                entry_tick_display_value: String(contract.entry_spot),
                 exit_tick: contract.exit_spot,
+                exit_tick_display_value: String(contract.exit_spot),
                 date_start: now,
+                entry_tick_time: now,
+                exit_tick_time: now + 1,
                 display_name: win ? localize('Virtual Win') : localize('Virtual Loss'),
                 is_virtual: true,
                 is_completed: true,
                 symbol: this.tradeOptions.symbol,
                 underlying: this.tradeOptions.symbol,
+                contract_type: this.tradeOptions.contract_type,
+                currency: this.tradeOptions.currency || 'USD',
+                shortcode: `VIRTUAL_${this.tradeOptions.contract_type}_${this.tradeOptions.symbol}`,
             };
 
             globalObserver.emit('bot.contract', { ...virtual_contract, is_sold: true, is_virtual: true });
@@ -183,12 +191,12 @@ export default Engine =>
             this.store.dispatch(sell());
             this.renewProposalsOnPurchase();
 
-            const unsubscribe = this.store.subscribe(() => {
-                if (this.store.getState().proposalsReady) {
-                    unsubscribe();
-                    if (this.afterPromise) this.afterPromise();
-                }
-            });
+            // Ensure afterPromise is called to continue the bot loop
+            if (this.afterPromise) {
+                const currentAfterPromise = this.afterPromise;
+                this.afterPromise = null; // Clear to prevent double calls
+                currentAfterPromise();
+            }
         }
 
         applyAlternateMarketsToCurrentTradeOptions() {
