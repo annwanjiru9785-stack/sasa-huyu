@@ -18,6 +18,20 @@ const getBotInterface = tradeEngine => {
         isResult: result => getDetail(10) === result,
         isTradeAgain: result => globalObserver.emit('bot.trade_again', result),
         readDetails: i => getDetail(i - 1),
+        setVirtualHook: settings => {
+            if (tradeEngine.vh_state) {
+                if (typeof settings.enabled !== 'undefined') {
+                    tradeEngine.vh_state.enabled = !!settings.enabled;
+                    // If enabling, also set is_virtual to true to start virtual trades
+                    if (settings.enabled) {
+                        tradeEngine.vh_state.is_virtual = true;
+                    }
+                }
+                if (typeof settings.threshold !== 'undefined') {
+                    tradeEngine.vh_state.threshold = Number(settings.threshold);
+                }
+            }
+        },
     };
 };
 

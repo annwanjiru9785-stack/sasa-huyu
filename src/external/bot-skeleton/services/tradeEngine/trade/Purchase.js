@@ -24,8 +24,15 @@ export default Engine =>
 
         async virtualPurchase(contract_type) {
             console.log('🤖 [VIRTUAL HOOK] Executing realistic virtual trade simulation.');
-            const { id } = this.selectProposal(contract_type);
-            const proposal = this.data.proposals.find(p => p.id === id);
+            
+            let proposal;
+            try {
+                const { id } = this.selectProposal(contract_type);
+                proposal = this.data.proposals.find(p => p.id === id);
+            } catch (e) {
+                console.error('🤖 [VIRTUAL HOOK] Error selecting proposal:', e.message);
+                throw new Error(`Virtual trade failed: ${e.message}. Please ensure your strategy blocks are correctly configured.`);
+            }
 
             if (!proposal) {
                 throw new Error('Proposal not found for virtual trade simulation.');
@@ -140,17 +147,19 @@ export default Engine =>
                 console.log('🤖 [VIRTUAL HOOK] Virtual win. Staying in virtual mode.');
             }
 
-            this.store.dispatch(sell());
-
-            info({
-                profit: contract.profit,
-                contract: {
-                    ...contract,
-                    display_name: win ? 'Virtual Won' : 'Virtual Loss',
-                },
-                accountID: 'VIRTUAL',
-                is_virtual: true,
+            // Update internal statistics so martingale logic can see the virtual results
+            this.updateTotals({
+                ...contract,
+                buy_price: contract.ask_price,
+                sell_price: contract.profit > 0 ? contract.payout : 0,
+                transaction_ids: { buy: 'VIRTUAL', sell: 'VIRTUAL' },
+                entry_tick: contract.entry_spot,
+                exit_tick: contract.exit_spot,
+                entry_tick_time: Math.floor(Date.now() / 1000) - 1,
+                exit_tick_time: Math.floor(Date.now() / 1000),
             });
+
+            this.store.dispatch(sell());
 
             this.renewProposalsOnPurchase();
 
