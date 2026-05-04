@@ -103,20 +103,15 @@ export const getDebugServiceWorker = () => {
 };
 
 export const generateOAuthURL = () => {
-    const { getOauthURL } = URLUtils;
-    const oauth_url = getOauthURL();
-    const original_url = new URL(oauth_url);
-    const configured_server_url = (LocalStorageUtils.getValue(LocalStorageConstants.configServerURL) ||
-        localStorage.getItem('config.server_url') ||
-        original_url.hostname) as string;
+    const language = 'EN';
+    const server_url = localStorage.getItem('config.server_url');
+    const redirect_uri = `${window.location.origin}/callback`;
+    const brand = 'makotitraders';
+    const app_id = getAppId();
 
-    const valid_server_urls = ['green.derivws.com', 'red.derivws.com', 'blue.derivws.com'];
-    if (
-        typeof configured_server_url === 'string'
-            ? !valid_server_urls.includes(configured_server_url)
-            : !valid_server_urls.includes(JSON.stringify(configured_server_url))
-    ) {
-        original_url.hostname = configured_server_url;
+    if (server_url && /qa/.test(server_url)) {
+        return `https://${server_url}/oauth2/authorize?app_id=${app_id}&l=${language}&redirect_uri=${redirect_uri}&brand=${brand}`;
     }
-    return original_url.toString() || oauth_url;
+
+    return `https://oauth.deriv.com/oauth2/authorize?app_id=${app_id}&l=${language}&redirect_uri=${redirect_uri}&brand=${brand}`;
 };

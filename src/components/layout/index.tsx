@@ -5,7 +5,7 @@ import { Outlet } from 'react-router-dom';
 import { api_base } from '@/external/bot-skeleton';
 import useTMB from '@/hooks/useTMB';
 import { handleOidcAuthFailure } from '@/utils/auth-utils';
-import { requestOidcAuthentication } from '@deriv-com/auth-client';
+
 import { useDevice } from '@deriv-com/ui';
 import { crypto_currencies_display_order, fiat_currencies_display_order } from '../shared';
 import Footer from './footer';
@@ -153,16 +153,8 @@ const Layout = () => {
                         sessionStorage.setItem('query_param_currency', query_param_currency);
                     }
                     try {
-                        await requestOidcAuthentication({
-                            redirectCallbackUri: `${window.location.origin}/callback`,
-                            ...(query_param_currency
-                                ? {
-                                      state: {
-                                          account: query_param_currency,
-                                      },
-                                  }
-                                : {}),
-                        });
+                        const { generateOAuthURL } = await import('@/components/shared');
+                        window.location.replace(generateOAuthURL());
                     } catch (err) {
                         setIsAuthenticating(false);
                         handleOidcAuthFailure(err);
