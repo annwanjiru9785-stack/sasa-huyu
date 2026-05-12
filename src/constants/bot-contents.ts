@@ -23,6 +23,7 @@ export const DBOT_TABS: TDashboardTabIndex = Object.freeze({
     COPY_TRADING: 8,    // DOM position 8 in main.tsx
     DTRADER: 9,         // DOM position 9 in main.tsx
     TRADINGVIEW: 10,    // DOM position 10 in main.tsx
+    DERIV_API: 11,      // DOM position 11 in main.tsx
     SPEEDBOT: 12,
     // Keep TUTORIAL as a non-active sentinel to avoid index mismatches in legacy checks
     TUTORIAL: 999,

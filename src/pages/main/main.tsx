@@ -38,6 +38,7 @@ const AnalysisTools = lazy(() => import('../analysis-tool'));
 const CopyTrading = lazy(() => import('../copy-trading'));
 const Strategies = lazy(() => import('../free-bots/strategies'));
 const Dtrader = lazy(() => import('../dtrader'));
+const DerivNewApiPage = lazy(() => import('../deriv-new-api/DerivNewApiPage'));
 import TradingBots from '../free-bots/trading-bots';
 
 const AppWrapper = observer(() => {
@@ -70,6 +71,7 @@ const AppWrapper = observer(() => {
         'copy_trading',  // 8 - Copy Trading
         'dtrader',       // 9 - DTrader
         'tradingview',   // 10 - TradingView
+        'deriv_api',     // 11 - Deriv New API
     ];
     
     const { isDesktop } = useDevice();
@@ -159,11 +161,14 @@ const AppWrapper = observer(() => {
                         <div label={<><LegacyChartsIcon height='16px' width='16px' /><Localize i18n_default_text='TradingView' /></>} id='id-tradingview'>
                             <Suspense fallback={<ChunkLoader message={localize('Please wait, loading TradingView...')} />}><TradingView /></Suspense>
                         </div>
+                        <div label={<><LabelPairedPuzzlePieceTwoCaptionBoldIcon height='24px' width='24px' /><Localize i18n_default_text='Deriv API' /></>} id='id-deriv-api'>
+                            <Suspense fallback={<ChunkLoader message={localize('Please wait...')} />}><DerivNewApiPage /></Suspense>
+                        </div>
                     </Tabs>
                 </div>
             </div>
             <DesktopWrapper>
-                {hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && (
+                {hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && (
                     <div className='main__run-strategy-wrapper'>
                         {hash[active_tab] !== 'trading_bots' && <RunStrategy />}
                         <RunPanel />
@@ -171,7 +176,7 @@ const AppWrapper = observer(() => {
                 )}
                 <ChartModal /><TradingViewModal />
             </DesktopWrapper>
-            <MobileWrapper>{!is_open && hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && <RunPanel />}</MobileWrapper>
+            <MobileWrapper>{!is_open && hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && <RunPanel />}</MobileWrapper>
             <SpeedBotFloatingStop />
         </React.Fragment>
     );

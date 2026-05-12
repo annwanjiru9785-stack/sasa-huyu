@@ -1,0 +1,191 @@
+.dna-page {
+    padding: 24px 32px;
+    max-width: 900px;
+    margin: 0 auto;
+    color: #e0e0e0;
+    font-family: sans-serif;
+}
+
+.dna-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #fff;
+}
+
+.dna-sub {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 28px;
+    line-height: 1.5;
+}
+
+.dna-section {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+
+    h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #f9fafb;
+        margin: 0 0 12px;
+    }
+}
+
+.dna-hint {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 12px;
+    line-height: 1.5;
+
+    code {
+        background: #111827;
+        padding: 2px 5px;
+        border-radius: 4px;
+        color: #93c5fd;
+        font-family: monospace;
+        font-size: 11px;
+    }
+}
+
+.dna-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.dna-label {
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+.dna-btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.dna-btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: opacity 0.15s;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &--primary {
+        background: #2563eb;
+        color: #fff;
+        &:hover:not(:disabled) { background: #1d4ed8; }
+    }
+
+    &--outline {
+        background: transparent;
+        color: #60a5fa;
+        border: 1px solid #3b82f6;
+        &:hover:not(:disabled) { background: #1e3a5f; }
+    }
+
+    &--danger {
+        background: #dc2626;
+        color: #fff;
+        &:hover:not(:disabled) { background: #b91c1c; }
+    }
+}
+
+.dna-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #374151;
+    background: #111827;
+    color: #e0e0e0;
+    font-size: 13px;
+
+    &:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+}
+
+.dna-ok  { color: #34d399; font-size: 13px; font-weight: 500; }
+.dna-err { color: #f87171; font-size: 13px; margin-top: 8px; }
+
+.dna-json {
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 12px;
+    color: #a5f3fc;
+    overflow: auto;
+    max-height: 300px;
+    margin-top: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: monospace;
+}
+
+.dna-ws-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &--disconnected { background: #374151; color: #9ca3af; }
+    &--connecting   { background: #78350f; color: #fcd34d; }
+    &--open         { background: #064e3b; color: #34d399; }
+    &--error        { background: #7f1d1d; color: #f87171; }
+    &--closed       { background: #374151; color: #9ca3af; }
+}
+
+.dna-ws-log {
+    background: #0f172a;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 12px;
+}
+
+.dna-ws-msg {
+    font-family: monospace;
+    font-size: 11px;
+    color: #86efac;
+    padding: 2px 0;
+    border-bottom: 1px solid #1e293b;
+    word-break: break-all;
+}
+
+.dna-ws-send {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+
+    input {
+        flex: 1;
+        padding: 6px 10px;
+        border-radius: 5px;
+        border: 1px solid #374151;
+        background: #111827;
+        color: #e0e0e0;
+        font-size: 12px;
+        font-family: monospace;
+    }
+}
