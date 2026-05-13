@@ -1,0 +1,267 @@
+I have a web app at https://makotitraderss.vercel.app
+
+I have a button called "Login (New Account)" that is broken.
+It has these problems:
+1. Sometimes clicking it takes me to app.deriv.com instead of Deriv's login page
+2. Sometimes it shows "unable to fetch"
+3. Sometimes it shows "web connection fail"
+4. Sometimes it logs me out immediately after redirecting back to my app
+
+My Deriv OAuth credentials:
+- client_id: 337DJLKi2OJ4VsyFSLIt9
+- redirect_uri: https://makotitraderss.vercel.app/callback
+
+---
+
+FIND my "Login (New Account)" button in my codebase and REPLACE its 
+entire click handler logic with the following correct implementation.
+Do NOT create new files. Do NOT change the button's appearance or label.
+Only fix the logic that runs when the button is clicked, and fix the 
+callback handler that processes the redirect from Deriv.
+
+---
+
+## WHAT THE BUTTON CLICK MUST DO (in exact order)
+
+### PART 1 — THE BUTTON CLICK HANDLER
+
+When the "Login (New Account)" button is clicked, do this:
+
+STEP 1 — Prevent any default form submission or page reload.
+
+STEP 2 — Clear any leftover PKCE data from a previous failed attempt:
+  sessionStorage.removeItem("deriv_code_verifier")
+  sessionStorage.removeItem("deriv_oauth_state")
+  This prevents stale data from a previous abandoned login from 
+  causing a state mismatch on the next attempt.
+
+STEP 3 — Disable the button and show a loading text like 
+  "Preparing login..." so the user cannot double-click it.
+  Double-clicking causes two separate PKCE flows to start, and only 
+  the last one's code_verifier will be in sessionStorage, so the first 
+  redirect will always fail.
+
+STEP 4 — Generate the code_verifier:
+  - Use crypto.getRandomValues() to generate 64 random bytes
+  - Convert to a URL-safe string using only these characters: 
+    ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~
+  - The result must be between 43 and 128 characters long
+  - Example result: "aK9mX2-pL7qR_tY4nW8v.ZcB3hJ6uE1sD0fG5iO..."
+
+STEP 5 — Generate the code_challenge from the code_verifier:
+  - Hash the code_verifier using SHA-256 via crypto.subtle.digest()
+  - Encode the hash using BASE64URL encoding:
+    * Convert the ArrayBuffer hash to a Uint8Array
+    * Convert to regular Base64 using btoa(String.fromCharCode(...array))
+    * Replace ALL + characters with -
+    * Replace ALL / characters with _
+    * Remove ALL trailing = characters
+  - This is async — use await. Wrap the entire click handler in an 
+    async function.
+  - NEVER use regular Base64. The + / = characters will break the URL.
+
+STEP 6 — Generate a random state string:
+  - Use crypto.randomUUID() to generate the state
+  - This protects against CSRF attacks
+
+STEP 7 — Save BOTH values to sessionStorage:
+  sessionStorage.setItem("deriv_code_verifier", codeVerifier)
+  sessionStorage.setItem("deriv_oauth_state", state)
+  
+  CRITICAL RULES about sessionStorage:
+  - NEVER use localStorage. localStorage is shared across all tabs.
+    If the user has two tabs open, the code_verifier from tab 2 will 
+    overwrite tab 1's, causing tab 1's login to fail permanently.
+  - sessionStorage is tab-specific and survives same-tab redirects.
+  - Save BEFORE redirecting. If you redirect first, the values 
+    will not be available when Deriv sends the user back.
+
+STEP 8 — Build the Deriv authorization URL exactly like this:
+  
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: "337DJLKi2OJ4VsyFSLIt9",
+    redirect_uri: "https://makotitraderss.vercel.app/callback",
+    scope: "trade account_manage",
+    state: state,
+    code_challenge: codeChallenge,
+    code_challenge_method: "S256"
+  })
+  const authURL = "https://auth.deriv.com/oauth2/auth?" + params.toString()
+
+  WHY this URL and not others:
+  - auth.deriv.com is the NEW Deriv OAuth server (2025)
+  - DO NOT use oauth.deriv.com — that is the legacy system
+  - DO NOT use app.deriv.com — that is Deriv's own trading platform, 
+    not an OAuth endpoint. If the user is landing there, it means the 
+    client_id is wrong or the URL is malformed.
+  - scope must be "trade account_manage" with a space, NOT a +.
+    URLSearchParams will encode the space correctly.
+
+STEP 9 — Redirect using window.location.href = authURL
+  
+  CRITICAL: NEVER use window.open() or target="_blank".
+  The redirect MUST happen in the SAME TAB.
+  sessionStorage is unique per tab. If you open a new tab, that tab 
+  has completely empty sessionStorage — the code_verifier is gone — 
+  and the login will fail with "unable to fetch" or immediate logout.
+
+STEP 10 — Wrap everything in try/catch:
+  If any error occurs (crypto not available, sessionStorage blocked, etc.):
+  - Re-enable the button
+  - Restore the button text to "Login (New Account)"
+  - Show a user-friendly error message like:
+    "Login failed to start. Please try again or use a different browser."
+
+---
+
+## PART 2 — THE CALLBACK PAGE HANDLER
+
+Find my callback page (the page that loads at /callback) and replace 
+its logic with the following. This page loads after Deriv redirects 
+the user back to my app.
+
+When this page loads, immediately run this logic:
+
+STEP 1 — Show a loading message to the user: "Completing login, please wait..."
+  Never show a blank page. Users will think it crashed.
+
+STEP 2 — Add a guard flag to prevent double execution:
+  let tokenExchangeStarted = false
+  
+  This prevents the code from running twice if the component re-renders 
+  or the page script executes multiple times. Before proceeding, check:
+  if (tokenExchangeStarted) return
+  tokenExchangeStarted = true
+
+STEP 3 — Parse URL parameters:
+  const params = new URLSearchParams(window.location.search)
+  const code = params.get("code")
+  const returnedState = params.get("state")
+  
+  If EITHER is missing or null:
+  - Show error: "Login failed: Deriv did not return a valid response. 
+    Please go back and try again."
+  - Show a button linking back to the login page
+  - STOP execution
+
+STEP 4 — Retrieve and verify state (CSRF check):
+  const savedState = sessionStorage.getItem("deriv_oauth_state")
+  
+  If savedState is null:
+  - Show error: "Your session expired or the page was refreshed during 
+    login. Please go back and try again."
+  - STOP. This happens when the user refreshes the callback page.
+  
+  If savedState !== returnedState:
+  - Show error: "Security check failed. Please go back and try again."
+  - STOP. This means the state was tampered with.
+  
+  If they match:
+  - sessionStorage.removeItem("deriv_oauth_state")  ← delete immediately
+  - Continue
+
+STEP 5 — Retrieve the code_verifier:
+  const codeVerifier = sessionStorage.getItem("deriv_code_verifier")
+  
+  If null or empty:
+  - Show error: "Login session data is missing. This happens if you 
+    opened the login in a new tab, or if your browser blocks 
+    sessionStorage. Please go back and try again in the same tab."
+  - STOP.
+
+STEP 6 — Exchange the authorization code for an access token.
+  Make this fetch request:
+
+  const response = await fetch("https://auth.deriv.com/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code: code,
+      redirect_uri: "https://makotitraderss.vercel.app/callback",
+      client_id: "337DJLKi2OJ4VsyFSLIt9",
+      code_verifier: codeVerifier
+    }).toString()
+  })
+
+  CRITICAL RULES for this fetch:
+  - Content-Type MUST be "application/x-www-form-urlencoded". 
+    If you send JSON, Deriv will reject it with a 400 error.
+  - Use new URLSearchParams({...}).toString() to build the body. 
+    Never manually concatenate strings for the body.
+  - The redirect_uri here MUST be byte-for-byte identical to the one 
+    used in the authorization URL in Part 1. Even one extra / will 
+    cause Deriv to reject the request.
+  - This fetch is called from the frontend — that is correct for 
+    public clients using PKCE. There is no client_secret needed.
+  - Wrap in try/catch for network errors.
+
+STEP 7 — Handle the token response:
+
+  If fetch throws a network error (no internet, DNS fail, CORS):
+  - Show: "Network error during login. Please check your connection 
+    and try again."
+  - Show a "Retry" button (window.location.reload()) 
+    and a "Back to login" link
+
+  If response.ok is false:
+  - Parse the response body as JSON
+  - Show: "Login failed: " + (data.error_description || data.error || 
+    "Unknown error from Deriv")
+  - Common errors and what they mean:
+    * "invalid_grant" = the code was already used, or expired (>60 sec), 
+      or code_verifier does not match code_challenge
+    * "invalid_client" = wrong client_id
+    * "redirect_uri_mismatch" = redirect_uri does not match registration
+
+  If response.ok is true:
+  - Parse JSON: const data = await response.json()
+  - Save the token:
+    sessionStorage.setItem("deriv_access_token", data.access_token)
+    sessionStorage.setItem("deriv_token_expiry", 
+      String(Date.now() + data.expires_in * 1000))
+  - Clean up: sessionStorage.removeItem("deriv_code_verifier")
+  - Show success message: "Login successful! Redirecting..."
+  - After 1500ms: window.location.href = "/"
+
+---
+
+## PART 3 — ON THE MAIN PAGE (wherever the button lives)
+
+Add this check at the top of the page load logic:
+
+  const token = sessionStorage.getItem("deriv_access_token")
+  const expiry = sessionStorage.getItem("deriv_token_expiry")
+  const isLoggedIn = token && expiry && Date.now() < Number(expiry)
+
+  If isLoggedIn is true: skip showing the login button and go straight 
+  to the authenticated state.
+  
+  If false: show the login button as normal.
+
+---
+
+## SUMMARY OF ALL BUGS THIS FIX ADDRESSES
+
+Bug 1 — "Takes me to app.deriv.com":
+  FIXED by using the correct URL: https://auth.deriv.com/oauth2/auth
+  with client_id=337DJLKi2OJ4VsyFSLIt9 properly included.
+
+Bug 2 — "Unable to fetch":
+  FIXED by ensuring code_verifier is always in sessionStorage before 
+  redirect, never using a new tab, and sending the token exchange 
+  request with correct Content-Type and body format.
+
+Bug 3 — "Web connection fail":
+  FIXED by wrapping fetch in try/catch and showing retry options 
+  instead of silently failing or crashing.
+
+Bug 4 — "Logs out immediately after redirect":
+  FIXED by properly reading ?code= and ?state= from the URL on the 
+  callback page, verifying state, and completing the token exchange 
+  before redirecting. The immediate logout was caused by the callback 
+  page doing nothing with the code — so no token was ever saved — 
+  so the app saw no token and kicked the user out.

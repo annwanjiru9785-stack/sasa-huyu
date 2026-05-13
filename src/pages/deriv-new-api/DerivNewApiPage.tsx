@@ -14,6 +14,8 @@ type WsStatus = 'disconnected' | 'connecting' | 'open' | 'error' | 'closed';
 
 const DerivNewApiPage: React.FC = () => {
     const [authed, setAuthed]             = useState<boolean | null>(null);
+    const [loginLoading, setLoginLoading] = useState(false);
+    const [loginError, setLoginError]     = useState('');
     const [accounts, setAccounts]         = useState<object | null>(null);
     const [accountsError, setAccountsError] = useState<string>('');
     const [accountsLoading, setAccountsLoading] = useState(false);
@@ -127,9 +129,30 @@ const DerivNewApiPage: React.FC = () => {
                     {authed === false && <span className='dna-err'>Not authenticated</span>}
                 </div>
                 <div className='dna-btn-row'>
-                    <button className='dna-btn dna-btn--primary' onClick={() => startLogin()}>
-                        Login (new accounts)
+                    <button
+                        className='dna-btn dna-btn--primary'
+                        disabled={loginLoading}
+                        onClick={async (e) => {
+                            e.preventDefault();
+                            if (loginLoading) return;
+                            setLoginLoading(true);
+                            setLoginError('');
+                            try {
+                                await startLogin();
+                                setLoginLoading(false);
+                            } catch (err: any) {
+                                setLoginLoading(false);
+                                setLoginError(err?.message ?? 'Login failed to start. Please try again.');
+                            }
+                        }}
+                    >
+                        {loginLoading ? 'Preparing login…' : 'Login (new accounts)'}
                     </button>
+                    {loginError && (
+                        <span style={{ color: '#ef4444', fontSize: '13px', display: 'block', marginTop: '6px' }}>
+                            {loginError}
+                        </span>
+                    )}
                     <button className='dna-btn dna-btn--outline' onClick={() => startSignup()}>
                         Sign up (new accounts)
                     </button>

@@ -39,6 +39,8 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
     const whatsappDropdownRef = useRef<HTMLDivElement>(null);
     const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
     const [profileIconClickCount, setProfileIconClickCount] = useState(0);
+    const [isNewLoginLoading, setIsNewLoginLoading] = useState(false);
+    const [newLoginError, setNewLoginError] = useState('');
     const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const { data: activeAccount } = useActiveAccount({ allBalanceData: client?.all_accounts_balance });
@@ -288,16 +290,30 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
                     <Button
                         tertiary
                         className='auth-new-accounts-button'
-                        onClick={async () => {
+                        is_disabled={isNewLoginLoading}
+                        onClick={async (e: React.MouseEvent) => {
+                            e.preventDefault();
+                            if (isNewLoginLoading) return;
+                            setIsNewLoginLoading(true);
+                            setNewLoginError('');
                             try {
                                 await redirectToNewAccountsLogin();
+                                // If we reach here the redirect didn't fire — re-enable
+                                setIsNewLoginLoading(false);
                             } catch (error) {
                                 console.error('[New Accounts Login]', error);
+                                setIsNewLoginLoading(false);
+                                setNewLoginError('Login failed to start. Please try again or use a different browser.');
                             }
                         }}
                     >
-                        <Localize i18n_default_text='Login (new accounts)' />
+                        <Localize i18n_default_text={isNewLoginLoading ? 'Preparing login…' : 'Login (new accounts)'} />
                     </Button>
+                    {newLoginError && (
+                        <span style={{ color: '#e74c3c', fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                            {newLoginError}
+                        </span>
+                    )}
                     <Button
                         primary
                         className='auth-signup-button'

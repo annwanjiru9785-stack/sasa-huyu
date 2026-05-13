@@ -6,7 +6,7 @@ import { observer as globalObserver } from '@/external/bot-skeleton/utils/observ
 import { clearAuthData } from '@/utils/auth-utils';
 import { Callback } from '@deriv-com/auth-client';
 import { Button } from '@deriv-com/ui';
-import { PKCE_VERIFIER_KEY, PKCE_STATE_KEY } from '@/utils/pkce';
+import { PKCE_VERIFIER_KEY, PKCE_STATE_KEY, PKCE_CLIENT_ID } from '@/utils/pkce';
 
 const getSelectedCurrency = (
     tokens: Record<string, string>,
@@ -30,134 +30,146 @@ const getSelectedCurrency = (
 
 /* ─────────────────────────────────────────────────────────
    PKCE callback — handles ?code=... redirects from Deriv.
-   Sends code + verifier to the backend for secure token
-   exchange, then stores legacy tokens and redirects home.
+   Exchanges code + verifier directly with auth.deriv.com
+   (frontend PKCE — no backend needed), saves access_token
+   to sessionStorage, then redirects home.
 ───────────────────────────────────────────────────────── */
 const PkceCallbackHandler = () => {
-    const [status, setStatus] = useState<'processing' | 'error'>('processing');
+    const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
     const [errorMsg, setErrorMsg] = useState('');
 
     useEffect(() => {
+        // Guard flag — prevents double-execution on StrictMode re-renders
+        let tokenExchangeStarted = false;
+
         const run = async () => {
-            try {
-                const params = new URLSearchParams(window.location.search);
+            if (tokenExchangeStarted) return;
+            tokenExchangeStarted = true;
 
-                // Surface Deriv-side errors immediately
-                const derivError = params.get('error');
-                if (derivError) {
-                    const desc = params.get('error_description') ?? derivError;
-                    if (derivError === 'redirect_uri_mismatch' || derivError === 'invalid_client') {
-                        throw new Error(`Configuration error: ${desc}. Please contact support.`);
-                    }
-                    throw new Error(`Deriv login error: ${desc}`);
-                }
-
-                const code          = params.get('code');
-                const returnedState = params.get('state');
-                const storedState   = localStorage.getItem(PKCE_STATE_KEY);
-                const verifier      = localStorage.getItem(PKCE_VERIFIER_KEY);
-
-                if (!code)     throw new Error('No authorization code found in URL. Please try logging in again.');
-                if (!verifier) throw new Error('PKCE verifier missing. Please try logging in again.');
-                if (storedState && returnedState && storedState !== returnedState) {
-                    throw new Error('State mismatch — possible CSRF attack. Please try logging in again.');
-                }
-
-                const redirectUri = `${window.location.origin}/callback`;
-
-                // ── Step 1: Backend exchanges code for access_token (sets httpOnly cookie) ──
-                const tokenRes = await fetch('/api/auth/token', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, codeVerifier: verifier, redirectUri }),
-                });
-
-                const tokenBody = await tokenRes.json() as { success?: boolean; error?: string; description?: string };
-
-                if (!tokenRes.ok) {
-                    const detail = tokenBody.description ?? tokenBody.error ?? `HTTP ${tokenRes.status}`;
-                    if (tokenBody.error === 'invalid_grant') {
-                        // Code expired or verifier wrong — user should restart login
-                        throw new Error('Login code expired or already used. Redirecting you to log in again…');
-                    }
-                    throw new Error(`Token exchange failed: ${detail}`);
-                }
-
-                // Clean up PKCE state
-                localStorage.removeItem(PKCE_VERIFIER_KEY);
-                localStorage.removeItem(PKCE_STATE_KEY);
-
-                // ── Step 2: Fetch legacy Deriv tokens using the access_token (via cookie) ──
-                const legacyRes = await fetch('/api/trading/v1/legacy/tokens', {
-                    credentials: 'include',
-                });
-
-                if (legacyRes.ok) {
-                    // Legacy tokens available — populate accountsList
-                    const legacyData = await legacyRes.json() as Record<string, string>;
-                    const tokens: Record<string, string> = legacyData.tokens ?? legacyData;
-
-                    const accountsList: Record<string, string> = {};
-                    const clientAccounts: Record<string, { loginid: string; token: string; currency: string }> = {};
-
-                    for (const [key, value] of Object.entries(tokens)) {
-                        if (key.startsWith('acct')) {
-                            const tokenKey = key.replace('acct', 'token');
-                            if (tokens[tokenKey]) {
-                                accountsList[value] = tokens[tokenKey];
-                                clientAccounts[value] = { loginid: value, token: tokens[tokenKey], currency: '' };
-                            }
-                        } else if (key.startsWith('cur')) {
-                            const accKey = key.replace('cur', 'acct');
-                            if (tokens[accKey] && clientAccounts[tokens[accKey]]) {
-                                clientAccounts[tokens[accKey]].currency = value;
-                            }
-                        }
-                    }
-
-                    localStorage.setItem('accountsList', JSON.stringify(accountsList));
-                    localStorage.setItem('clientAccounts', JSON.stringify(clientAccounts));
-                    if (tokens.token1) localStorage.setItem('authToken', tokens.token1);
-                    if (tokens.acct1)  localStorage.setItem('active_loginid', tokens.acct1);
-                } else {
-                    // Legacy endpoint failed — mark as authenticated and continue
-                    // The app will detect the httpOnly cookie via /api/auth/status
-                }
-
-                Cookies.set('logged_state', 'true', {
-                    domain: window.location.hostname,
-                    expires: 30,
-                    path: '/',
-                    secure: window.location.protocol === 'https:',
-                });
-
-                await new Promise(resolve => setTimeout(resolve, 100));
-                window.location.replace(`${window.location.origin}/`);
-            } catch (e: any) {
-                const msg = e?.message ?? 'An unexpected error occurred.';
-
-                // Auto-retry for invalid_grant (expired code)
-                if (msg.includes('expired or already used')) {
-                    setTimeout(() => { window.location.href = '/'; }, 3000);
-                }
-
-                setErrorMsg(msg);
+            // Surface any error Deriv sent back in the redirect
+            const params = new URLSearchParams(window.location.search);
+            const derivError = params.get('error');
+            if (derivError) {
+                const desc = params.get('error_description') ?? derivError;
+                setErrorMsg(`Deriv error: ${desc}. Please go back and try again.`);
                 setStatus('error');
+                return;
             }
+
+            // Step 3 — parse code + state
+            const code          = params.get('code');
+            const returnedState = params.get('state');
+            if (!code || !returnedState) {
+                setErrorMsg('Login failed: Deriv did not return a valid response. Please go back and try again.');
+                setStatus('error');
+                return;
+            }
+
+            // Step 4 — CSRF / state check (sessionStorage is tab-specific)
+            const savedState = sessionStorage.getItem(PKCE_STATE_KEY);
+            if (!savedState) {
+                setErrorMsg(
+                    'Your session expired or the page was refreshed during login. ' +
+                    'Please go back and try again.'
+                );
+                setStatus('error');
+                return;
+            }
+            if (savedState !== returnedState) {
+                setErrorMsg('Security check failed. Please go back and try again.');
+                setStatus('error');
+                return;
+            }
+            sessionStorage.removeItem(PKCE_STATE_KEY);
+
+            // Step 5 — retrieve code_verifier
+            const codeVerifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
+            if (!codeVerifier) {
+                setErrorMsg(
+                    'Login session data is missing. This happens if you opened the login in a new ' +
+                    'tab, or if your browser blocks sessionStorage. Please go back and try again in the same tab.'
+                );
+                setStatus('error');
+                return;
+            }
+
+            // Step 6 — exchange code for access_token directly with Deriv (PKCE public client)
+            const redirectUri = `${window.location.origin}/callback`;
+            let response: Response;
+            try {
+                response = await fetch('https://auth.deriv.com/oauth2/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        grant_type:    'authorization_code',
+                        code,
+                        redirect_uri:  redirectUri,
+                        client_id:     PKCE_CLIENT_ID,
+                        code_verifier: codeVerifier,
+                    }).toString(),
+                });
+            } catch (netErr: any) {
+                setErrorMsg('Network error during login. Please check your connection and try again.');
+                setStatus('error');
+                return;
+            }
+
+            // Step 7 — handle token response
+            if (!response.ok) {
+                let errData: any = {};
+                try { errData = await response.json(); } catch {}
+                const desc = errData.error_description || errData.error || `HTTP ${response.status}`;
+                setErrorMsg(`Login failed: ${desc}`);
+                setStatus('error');
+                return;
+            }
+
+            const data = await response.json() as { access_token: string; expires_in: number };
+
+            // Save access_token + expiry (tab-scoped; each tab manages its own session)
+            sessionStorage.setItem('deriv_access_token', data.access_token);
+            sessionStorage.setItem('deriv_token_expiry', String(Date.now() + data.expires_in * 1000));
+            sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+
+            Cookies.set('logged_state', 'true', {
+                domain:  window.location.hostname,
+                expires: 30,
+                path:    '/',
+                secure:  window.location.protocol === 'https:',
+            });
+
+            setStatus('success');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            window.location.href = '/';
         };
 
         run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (status === 'error') {
         return (
-            <div style={{ padding: '40px', textAlign: 'center', maxWidth: '480px', margin: '0 auto' }}>
+            <div style={{ padding: '40px', textAlign: 'center', maxWidth: '520px', margin: '0 auto' }}>
                 <h2 style={{ color: '#e74c3c', marginBottom: '16px' }}>Login failed</h2>
-                <p style={{ color: '#ccc', margin: '16px 0', whiteSpace: 'pre-wrap', textAlign: 'left', background: '#1a1a1a', padding: '12px', borderRadius: '8px', fontSize: '13px' }}>
+                <p style={{
+                    color: '#ccc', margin: '16px 0', whiteSpace: 'pre-wrap',
+                    textAlign: 'left', background: '#1a1a1a', padding: '12px',
+                    borderRadius: '8px', fontSize: '13px',
+                }}>
                     {errorMsg}
                 </p>
-                <Button onClick={() => { window.location.href = '/'; }}>Return to App</Button>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '16px' }}>
+                    <Button onClick={() => { window.location.reload(); }}>Retry</Button>
+                    <Button onClick={() => { window.location.href = '/'; }}>Return to App</Button>
+                </div>
+            </div>
+        );
+    }
+
+    if (status === 'success') {
+        return (
+            <div style={{ padding: '40px', textAlign: 'center' }}>
+                <p style={{ color: '#10b981' }}>Login successful! Redirecting…</p>
             </div>
         );
     }
