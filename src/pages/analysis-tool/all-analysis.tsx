@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import './all-analysis.scss';
+import { WebSocketConnectionManager } from '@/external/bot-skeleton/services/api/websocket-connection-manager';
 
 const AllAnalysis: React.FC = () => {
     // All Analysis functionality
@@ -9,62 +10,22 @@ const AllAnalysis: React.FC = () => {
             // Store ticks per subscribed symbol (filled dynamically)
             const ticksStorage: { [key: string]: number[] } = {};
 
-            const ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=80058');
+            // Use the centralized WebSocket manager instead of creating a new connection
+            const manager = WebSocketConnectionManager.getInstance();
 
             const subscribeTicks = (symbol: string) => {
-                ws.send(
-                    JSON.stringify({
-                        ticks_history: symbol,
-                        count: 255,
-                        end: 'latest',
-                        style: 'ticks',
-                        subscribe: 1,
-                    })
-                );
-            };
-
-            ws.onopen = () => {
-                console.log('WebSocket connected, requesting active symbols...');
-
-                // Request active symbols to get the correct 1s volatility indices
-                ws.send(
-                    JSON.stringify({
-                        active_symbols: 'brief',
-                    })
-                );
-
-                // Also subscribe to standard volatility indices immediately
-                const standardSymbols = ['R_10', 'R_25', 'R_50', 'R_75', 'R_100'];
-                standardSymbols.forEach(symbol => {
-                    if (!ticksStorage[symbol]) ticksStorage[symbol] = [];
-                    subscribeTicks(symbol);
-                    console.log('Subscribed to standard symbol:', symbol);
+                manager.send({
+                    ticks_history: symbol,
+                    count: 255,
+                    end: 'latest',
+                    style: 'ticks',
+                    subscribe: 1,
                 });
             };
 
-            const calculateTrendPercentage = (symbol: string, ticksCount: number) => {
-                const ticks = ticksStorage[symbol].slice(-ticksCount);
-                if (ticks.length < 2) return { risePercentage: 0, fallPercentage: 0 };
-
-                let riseCount = 0;
-                let fallCount = 0;
-
-                for (let i = 1; i < ticks.length; i++) {
-                    if (ticks[i] > ticks[i - 1]) riseCount++;
-                    else if (ticks[i] < ticks[i - 1]) fallCount++;
-                }
-
-                const total = riseCount + fallCount;
-                return {
-                    risePercentage: total > 0 ? (riseCount / total) * 100 : 0,
-                    fallPercentage: total > 0 ? (fallCount / total) * 100 : 0,
-                };
-            };
-
-            ws.onmessage = event => {
+            // Subscribe to messages from the manager
+            const unsubscribeMessage = manager.onMessage((data) => {
                 try {
-                    const data = JSON.parse(event.data);
-
                     // Log any errors
                     if (data.error) {
                         console.error(
@@ -114,14 +75,55 @@ const AllAnalysis: React.FC = () => {
                 } catch (error) {
                     console.error('Error parsing WebSocket message:', error);
                 }
-            };
+            });
 
-            ws.onerror = error => {
-                console.error('WebSocket error:', error);
-            };
+            // Subscribe to status changes
+            const unsubscribeStatus = manager.onStatusChange((status) => {
+                console.log('[AllAnalysis] Connection status:', status);
+                
+                // Once connected, request active symbols
+                if (status === 'connected') {
+                    manager.send({ active_symbols: 'brief' });
+                    
+                    // Also subscribe to standard volatility indices
+                    const standardSymbols = ['R_10', 'R_25', 'R_50', 'R_75', 'R_100'];
+                    standardSymbols.forEach(symbol => {
+                        if (!ticksStorage[symbol]) ticksStorage[symbol] = [];
+                        subscribeTicks(symbol);
+                        console.log('Subscribed to standard symbol:', symbol);
+                    });
+                }
+            });
 
-            ws.onclose = () => {
-                console.log('WebSocket closed');
+            // Request active symbols if already connected
+            if (manager.isConnected()) {
+                manager.send({ active_symbols: 'brief' });
+                
+                const standardSymbols = ['R_10', 'R_25', 'R_50', 'R_75', 'R_100'];
+                standardSymbols.forEach(symbol => {
+                    if (!ticksStorage[symbol]) ticksStorage[symbol] = [];
+                    subscribeTicks(symbol);
+                    console.log('Subscribed to standard symbol:', symbol);
+                });
+            }
+
+            const calculateTrendPercentage = (symbol: string, ticksCount: number) => {
+                const ticks = ticksStorage[symbol]?.slice(-ticksCount) || [];
+                if (ticks.length < 2) return { risePercentage: 0, fallPercentage: 0 };
+
+                let riseCount = 0;
+                let fallCount = 0;
+
+                for (let i = 1; i < ticks.length; i++) {
+                    if (ticks[i] > ticks[i - 1]) riseCount++;
+                    else if (ticks[i] < ticks[i - 1]) fallCount++;
+                }
+
+                const total = riseCount + fallCount;
+                return {
+                    risePercentage: total > 0 ? (riseCount / total) * 100 : 0,
+                    fallPercentage: total > 0 ? (fallCount / total) * 100 : 0,
+                };
             };
 
             function updateTables() {
@@ -192,7 +194,8 @@ const AllAnalysis: React.FC = () => {
 
             return () => {
                 clearInterval(intervalId);
-                ws.close();
+                unsubscribeMessage();
+                unsubscribeStatus();
             };
         };
 
