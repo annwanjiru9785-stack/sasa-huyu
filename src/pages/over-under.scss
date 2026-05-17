@@ -55,8 +55,8 @@ $cyan:    #06b6d4;
         height: auto;
         min-height: 100%;
         overflow-y: auto;
-        // Extra bottom padding so content doesn't hide behind the fixed CTA button
-        padding-bottom: 80px;
+        gap: 8px;
+        padding: 10px 10px 90px;
     }
 }
 
@@ -163,36 +163,13 @@ $cyan:    #06b6d4;
     }
 }
 
-// ── Header ───────────────────────────────────────────────────
-.ou-header {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 12px 16px;
-    background: $bg1; border: 1px solid $b1; border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3); overflow: hidden; position: relative;
+// ── Status-only top bar (replaces full header) ───────────────
+.ou-statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 4px 0;
     flex-shrink: 0;
-
-    &::before {
-        content: '';
-        position: absolute; top: 0; left: 0; right: 0; height: 2px;
-        background: linear-gradient(90deg, $blue 0%, $purple 55%, $cyan 100%);
-    }
-
-    &__left { display: flex; align-items: center; gap: 12px; }
-
-    &__icon {
-        width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
-        background: linear-gradient(135deg,rgba($blue,.22),rgba($purple,.16));
-        border: 1px solid rgba($blue,.28);
-        display: flex; align-items: center; justify-content: center; color: $blue;
-    }
-
-    &__title {
-        font-size: 16px; font-weight: 800;
-        background: linear-gradient(110deg, $txt, rgba($txt,.6));
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-
-    &__sub { font-size: 11px; color: $dim; margin-top: 1px; }
 }
 
 // ── Status badge ─────────────────────────────────────────────

@@ -370,19 +370,12 @@ const OverUnder = observer(() => {
                 )}
             </AnimatePresence>
 
-            {/* ── HEADER ── */}
-            <header className='ou-header'>
-                <div className='ou-header__left'>
-                    <div className='ou-header__icon'><Zap size={17} /></div>
-                    <div>
-                        <div className='ou-header__title'>Over / Under Terminal</div>
-                        <div className='ou-header__sub'>Synthetic Indices · Digit Strategy Engine</div>
-                    </div>
-                </div>
+            {/* ── STATUS BAR (compact, no title) ── */}
+            <div className='ou-statusbar'>
                 <div className={`ou-status ou-status--${connState}`}>
                     <span className='ou-status__dot' />{connText}
                 </div>
-            </header>
+            </div>
 
             {/* ── HEATMAP ── */}
             <div className='ou-heatmap'>

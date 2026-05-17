@@ -11,7 +11,6 @@ import { crypto_currencies_display_order, fiat_currencies_display_order } from '
 import Footer from './footer';
 import AppHeader from './header';
 import Body from './main-body';
-import { MakotiWidget } from '../makoti-widget/makoti-widget';
 import './layout.scss';
 
 const Layout = () => {
@@ -208,7 +207,6 @@ const Layout = () => {
                 <Outlet />
             </Body>
             {!isCallbackPage && isDesktop && <Footer />}
-            <MakotiWidget />
         </div>
     );
 };

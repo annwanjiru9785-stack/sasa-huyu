@@ -40,6 +40,7 @@ const Strategies = lazy(() => import('../free-bots/strategies'));
 const Dtrader = lazy(() => import('../dtrader'));
 const DerivNewApiPage = lazy(() => import('../deriv-new-api/DerivNewApiPage'));
 import TradingBots from '../free-bots/trading-bots';
+import { MakotiWidget } from '@/components/makoti-widget/makoti-widget';
 
 const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
@@ -168,7 +169,7 @@ const AppWrapper = observer(() => {
                 </div>
             </div>
             <DesktopWrapper>
-                {hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && (
+                {hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && hash[active_tab] !== 'over_under' && (
                     <div className='main__run-strategy-wrapper'>
                         {hash[active_tab] !== 'trading_bots' && <RunStrategy />}
                         <RunPanel />
@@ -176,8 +177,9 @@ const AppWrapper = observer(() => {
                 )}
                 <ChartModal /><TradingViewModal />
             </DesktopWrapper>
-            <MobileWrapper>{!is_open && hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && <RunPanel />}</MobileWrapper>
+            <MobileWrapper>{!is_open && hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && hash[active_tab] !== 'over_under' && <RunPanel />}</MobileWrapper>
             <SpeedBotFloatingStop />
+            {hash[active_tab] === 'bot_builder' && <MakotiWidget />}
         </React.Fragment>
     );
 });
