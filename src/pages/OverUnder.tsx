@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -183,6 +183,9 @@ const OverUnder = observer(() => {
 
     const meta = STRAT_META[activeStrategy];
     const disabled = is_auto_running || is_authorizing;
+
+    // Mobile view toggle — Config vs Monitor
+    const [mobileView, setMobileView] = useState<'config' | 'monitor'>('config');
 
     const selectStrategy = (s: Strategy) => {
         if (disabled) return;
@@ -408,11 +411,27 @@ const OverUnder = observer(() => {
                 })}
             </div>
 
+            {/* ── MOBILE TAB SWITCHER (Config / Monitor) ── */}
+            <div className='ou-mobile-tabs'>
+                <button
+                    className={`ou-mtab${mobileView === 'config' ? ' ou-mtab--active' : ''}`}
+                    onClick={() => setMobileView('config')}
+                >
+                    <Settings size={13} /> Config
+                </button>
+                <button
+                    className={`ou-mtab${mobileView === 'monitor' ? ' ou-mtab--active' : ''}`}
+                    onClick={() => setMobileView('monitor')}
+                >
+                    <Terminal size={13} /> Monitor
+                </button>
+            </div>
+
             {/* ── BODY ── */}
             <div className='ou-body'>
 
                 {/* ══ CONFIG PANEL ══ */}
-                <div className='ou-panel'>
+                <div className={`ou-panel${mobileView === 'monitor' ? ' ou-panel--hidden-mobile' : ''}`}>
 
                     {/* Panel title */}
                     <div className='ou-panel__title'>
@@ -718,7 +737,7 @@ const OverUnder = observer(() => {
                 </div>
 
                 {/* ══ MONITOR PANEL ══ */}
-                <div className='ou-monitor'>
+                <div className={`ou-monitor${mobileView === 'config' ? ' ou-monitor--hidden-mobile' : ''}`}>
                     <div className='ou-monitor__head'>
                         <span><Terminal size={13} /> Live Monitor</span>
                         <button className='ou-monitor__clr' onClick={clearDebug}><Trash2 size={12} /></button>

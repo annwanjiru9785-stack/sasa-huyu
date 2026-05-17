@@ -172,6 +172,55 @@ $cyan:    #06b6d4;
     flex-shrink: 0;
 }
 
+// ── Mobile panel tab switcher (Config | Monitor) ─────────────
+.ou-mobile-tabs {
+    // Hidden on desktop — panels sit side-by-side there
+    display: none;
+    flex-shrink: 0;
+
+    @media (max-width: 760px) {
+        display: flex;
+        gap: 0;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid $b1;
+        background: $bg2;
+    }
+}
+
+.ou-mtab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 0;
+    border: none;
+    background: transparent;
+    color: $sub;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+
+    svg { color: inherit; flex-shrink: 0; }
+
+    &--active {
+        background: $bg3;
+        color: $txt;
+        border-radius: 9px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3) inset;
+    }
+
+    &:first-child { border-right: 1px solid $b1; }
+}
+
+// Hide panels on mobile based on which tab is active
+@media (max-width: 760px) {
+    .ou-panel--hidden-mobile   { display: none !important; }
+    .ou-monitor--hidden-mobile { display: none !important; }
+}
+
 // ── Status badge ─────────────────────────────────────────────
 .ou-status {
     display: flex; align-items: center; gap: 7px;

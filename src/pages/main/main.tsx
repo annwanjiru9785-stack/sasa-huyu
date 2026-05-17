@@ -41,6 +41,7 @@ const Dtrader = lazy(() => import('../dtrader'));
 const DerivNewApiPage = lazy(() => import('../deriv-new-api/DerivNewApiPage'));
 import TradingBots from '../free-bots/trading-bots';
 import { MakotiWidget } from '@/components/makoti-widget/makoti-widget';
+import BlocklyIOSPrompt from '@/components/blockly-ios-prompt/blockly-ios-prompt';
 
 const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
@@ -180,6 +181,7 @@ const AppWrapper = observer(() => {
             <MobileWrapper>{!is_open && hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && hash[active_tab] !== 'over_under' && <RunPanel />}</MobileWrapper>
             <SpeedBotFloatingStop />
             {hash[active_tab] === 'bot_builder' && <MakotiWidget />}
+            <BlocklyIOSPrompt />
         </React.Fragment>
     );
 });

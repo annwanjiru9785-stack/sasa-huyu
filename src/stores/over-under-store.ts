@@ -696,8 +696,16 @@ export default class OverUnderStore {
         this.connection_status = STATUS_CONNECTING;
         this.is_authorized = false;
         this.is_authorizing = true;
-        const app_id = getAppId();
-        const server_url = getSocketURL();
+
+        // ── Shared app config ─────────────────────────────────────────────────
+        // app_id and server_url are read from the ONE shared config file:
+        //   src/components/shared/utils/config/config.ts  →  const APP_ID = …
+        // Changing APP_ID there automatically applies here too.
+        // No app_id is hardcoded in this store.
+        const app_id    = getAppId();       // ← shared with the whole application
+        const server_url = getSocketURL();  // ← shared with the whole application
+        // ─────────────────────────────────────────────────────────────────────
+
         try {
             this.ws = new WebSocket(`wss://${server_url}/websockets/v3?app_id=${app_id}`);
             this.ws.onopen = () => {
