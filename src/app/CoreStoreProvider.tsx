@@ -295,6 +295,11 @@ const CoreStoreProvider: React.FC<{ children: React.ReactNode }> = observer(({ c
 
             if (msg_type === 'balance' && data && !error) {
                 const balance = data.balance;
+
+                if (isNewLoggedIn()) {
+                    console.log('[BALANCE DEBUG] OTP WS balance msg:', JSON.stringify(balance).slice(0, 500));
+                }
+
                 // Get balance swap state
                 const swapState = getBalanceSwapState();
                 // Only apply mirror/swap if admin has enabled it

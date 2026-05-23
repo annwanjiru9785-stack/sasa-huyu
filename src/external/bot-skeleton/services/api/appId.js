@@ -76,7 +76,7 @@ export const V2GetActiveToken = () => {
     // Return null so api_base.init() creates the WS connection for public data only
     // (active symbols, ticks) without trying to authorize with an invalid token.
     if (typeof window !== 'undefined') {
-        const newAuthToken = sessionStorage.getItem('NEW_AUTH_token');
+        const newAuthToken = sessionStorage.getItem('NEW_AUTH_token') || localStorage.getItem('NEW_AUTH_token');
         if (newAuthToken) {
             return null;
         }
