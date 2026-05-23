@@ -106,11 +106,6 @@ export async function handleNewCallback() {
   
   window.history.replaceState({}, '', '/callback')
   
-  if (!localStorage.getItem(K.active)) {
-    console.log("[NEW AUTH] Not a new system callback, skipping")
-    return null
-  }
-  
   if (!code) {
     throw new Error("Missing authorization code from Deriv")
   }
