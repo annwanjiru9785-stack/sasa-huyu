@@ -709,13 +709,14 @@ export default class OverUnderStore {
                 const data = JSON.parse(event.data);
                 if (data.msg_type === 'buy') {
                     this.is_purchasing = false;
+                    // OTP WS echoes underlying_symbol; legacy echoes symbol
+                    const symbol = data.echo_req?.parameters?.underlying_symbol
+                        || data.echo_req?.parameters?.symbol;
                     if (data.error) {
-                        const symbol = data.echo_req?.parameters?.symbol;
                         if (symbol) this.symbol_locks[symbol] = false;
                         this.addLog(`Trade Error: ${data.error.message}`);
                     } else {
                         const contract_id = data.buy?.contract_id;
-                        const symbol = data.echo_req?.parameters?.symbol;
                         this.addLog(`Purchase Sent: ${contract_id} on ${symbol}`);
                         if (contract_id) this.active_contracts.add(String(contract_id));
                     }
@@ -811,7 +812,9 @@ export default class OverUnderStore {
                     if (data.error) {
                         this.addLog(`Error: ${data.error.message}`);
                         if (data.msg_type === 'buy') {
-                             const symbol = data.echo_req.symbol;
+                             const symbol = data.echo_req?.parameters?.underlying_symbol
+                                 || data.echo_req?.parameters?.symbol
+                                 || data.echo_req?.symbol;
                              if(symbol) this.symbol_locks[symbol] = false;
                              this.is_purchasing = false;
                         }
@@ -877,7 +880,9 @@ export default class OverUnderStore {
                             break;
                         case 'buy':
                             this.is_purchasing = false;
-                            const symbol = data.echo_req.parameters.symbol;
+                            const symbol = data.echo_req?.parameters?.underlying_symbol
+                                || data.echo_req?.parameters?.symbol
+                                || data.echo_req?.symbol;
                             if (data.error) {
                                 if (symbol) this.symbol_locks[symbol] = false;
                             } else {
