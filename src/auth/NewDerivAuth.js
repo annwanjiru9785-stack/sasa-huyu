@@ -123,7 +123,12 @@ export function subscribeNewSystemTopics() {
   const ws = window._newSystemWS
   if (!ws || ws.readyState !== WebSocket.OPEN) return false
   try {
-    ws.send(JSON.stringify({ balance: 1, subscribe: 1, account: 'all' }))
+    // One-shot balance request (OTP WS may not support subscribe, so we rely on
+    // explicit balance requests after buy/settle in over-under-store.ts).
+    ws.send(JSON.stringify({ balance: 1 }))
+    // Subscribe to all POC updates (matches legacy behavior in over-under-store line 886).
+    // If the OTP WS rejects this (requires contract_id), the per-contract subscription
+    // in over-under-store's _setupNewSystemTradeHandler serves as fallback.
     ws.send(JSON.stringify({ proposal_open_contract: 1, subscribe: 1 }))
     window._newSystemTopicsSubscribed = true
     console.log("[NEW WS] Subscribed to balance & POC updates")
