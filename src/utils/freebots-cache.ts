@@ -122,7 +122,20 @@ export const getBotsManifest = async (): Promise<TBotsManifestItem[] | null> => 
         }
         if (!res.ok) return null;
 
-        const data = (await res.json()) as TBotsManifestItem[];
+        // Guard against HTML fallback responses (e.g. CDN 404 page)
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('json')) {
+            console.warn('freebots-cache:getBotsManifest non-JSON response, skipping');
+            return null;
+        }
+
+        let data: TBotsManifestItem[];
+        try {
+            data = (await res.json()) as TBotsManifestItem[];
+        } catch {
+            console.warn('freebots-cache:getBotsManifest JSON parse failed, returning empty');
+            return [];
+        }
 
         // If we loaded a domain-specific file, set base for XML fetches
         if (res.url.includes(`/${domain}/bots.json`)) {
