@@ -152,7 +152,7 @@ const K = {
   active:   "NEW_AUTH_active"
 }
 
-function clearNewAuthStorage() {
+export function clearNewAuthStorage() {
   localStorage.removeItem(K.token);
   localStorage.removeItem(K.expiry);
   localStorage.removeItem(K.verifier);

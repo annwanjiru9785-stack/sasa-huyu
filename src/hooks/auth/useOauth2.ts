@@ -5,6 +5,7 @@ import RootStore from '@/stores/root-store';
 import { handleOidcAuthFailure } from '@/utils/auth-utils';
 import { Analytics } from '@deriv-com/analytics';
 import { OAuth2Logout } from '@deriv-com/auth-client';
+import { isNewLoggedIn, clearNewAuthStorage } from '@/auth/NewDerivAuth';
 
 /**
  * Provides an object with properties: `oAuthLogout`, `retriggerOAuth2Login`, and `isSingleLoggingIn`.
@@ -77,9 +78,8 @@ export const useOauth2 = ({
                     'callback_token',
                 ];
                 keysToRemove.forEach(k => localStorage.removeItem(k));
+                sessionStorage.removeItem('cached_balances');
             } catch { /* localStorage can fail silently */ }
-
-            try { sessionStorage.clear(); } catch { /* sessionStorage can fail silently */ }
 
             try { Analytics.reset(); } catch { /* analytics may not be configured */ }
 
@@ -95,16 +95,48 @@ export const useOauth2 = ({
                 }
             } catch { /* client state reset can fail silently */ }
 
-            OAuth2Logout({
-                redirectCallbackUri: `${window.location.origin}/callback`,
-                WSLogoutAndRedirect: handleLogout ?? (() => Promise.resolve()),
-                postLogoutRedirectUri: window.location.origin,
-            }).catch(() => {});
+            if (isNewLoggedIn()) {
+                // New auth: clear new auth tokens and redirect to OIDC session logout
+                clearNewAuthStorage();
+                window.location.href =
+                    'https://auth.deriv.com/oauth2/sessions/logout' +
+                    '?redirect_uri=' + encodeURIComponent(window.location.origin);
+            } else {
+                // Legacy OAuth2 logout via deriv-com/auth-client
+                OAuth2Logout({
+                    redirectCallbackUri: `${window.location.origin}/callback`,
+                    WSLogoutAndRedirect: handleLogout ?? (() => Promise.resolve()),
+                    postLogoutRedirectUri: window.location.origin,
+                }).catch(() => {});
+            }
 
             client?.logout().catch(() => {});
         } catch { /* safety net — nothing should block the redirect below */ }
 
-        window.location.replace('/');
+        if (!isNewLoggedIn()) {
+            window.location.replace('/');
+        }
+            } catch { /* client state reset can fail silently */ }
+
+            if (isNewLoggedIn()) {
+                // New auth redirects to Deriv OIDC session logout
+                const { logoutNewSystem } = await import('@/auth/NewDerivAuth');
+                logoutNewSystem();
+            } else {
+                // Legacy OAuth2 logout via deriv-com/auth-client
+                OAuth2Logout({
+                    redirectCallbackUri: `${window.location.origin}/callback`,
+                    WSLogoutAndRedirect: handleLogout ?? (() => Promise.resolve()),
+                    postLogoutRedirectUri: window.location.origin,
+                }).catch(() => {});
+            }
+
+            client?.logout().catch(() => {});
+        } catch { /* safety net — nothing should block the redirect below */ }
+
+        if (!isNewLoggedIn()) {
+            window.location.replace('/');
+        }
     };
     const retriggerOAuth2Login = async () => {
         try {
