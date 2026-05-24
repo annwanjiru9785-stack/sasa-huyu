@@ -5,7 +5,7 @@ import { AccountSwitcher as UIAccountSwitcher } from '@deriv-com/ui';
 import AccountSwitcherFooter from './account-swticher-footer';
 import { TDemoAccounts } from './types';
 import { AccountSwitcherDivider, convertCommaValue } from './utils';
-import { isNewLoggedIn } from '@/auth/NewDerivAuth';
+import { isNewLoggedIn, sendViaNewSystemWithPromise } from '@/auth/NewDerivAuth';
 
 const DemoAccounts = ({
     tabs_labels,
@@ -20,19 +20,28 @@ const DemoAccounts = ({
         try {
             console.log('🔄 [RESET BALANCE] Resetting demo balance for:', loginId);
 
-            if (!api_base?.api) return;
-
             if (isNewLoggedIn()) {
-                // Bypass deriv-api send() to avoid its event pipeline forwarding
-                // AuthorizationRequired errors to handleMessages → oAuthLogout.
-                // Send directly on the raw WebSocket connection instead.
-                if (api_base.api.connection?.readyState === WebSocket.OPEN) {
-                    api_base.api.connection.send(JSON.stringify({ topup_virtual: 1, loginid: loginId }));
-                    console.log('✅ [RESET BALANCE] Sent via legacy WS connection');
+                if (!window._newSystemWS || window._newSystemWS.readyState !== WebSocket.OPEN) {
+                    console.warn('⚠️ [RESET BALANCE] OTP WS not connected');
+                    return;
                 }
+                // Send via the OTP WS which IS authenticated (unlike the legacy WS).
+                // Add a 10s timeout in case the OTP WS doesn't support topup_virtual.
+                const result = await Promise.race([
+                    sendViaNewSystemWithPromise({ topup_virtual: 1, loginid: loginId }),
+                    new Promise<never>((_, reject) =>
+                        setTimeout(() => reject(new Error('timeout')), 10000)
+                    ),
+                ]);
+                if ((result as any)?.error) {
+                    console.error('❌ [RESET BALANCE] Error:', (result as any).error);
+                    return;
+                }
+                console.log('✅ [RESET BALANCE] Success via OTP WS');
                 return;
             }
 
+            if (!api_base?.api) return;
             const { topup_virtual, error } = await api_base.api.send({ topup_virtual: 1 });
             if (error) {
                 console.error('❌ [RESET BALANCE] Error resetting balance:', error);
