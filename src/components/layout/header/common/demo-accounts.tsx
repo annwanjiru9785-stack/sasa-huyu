@@ -5,7 +5,9 @@ import { AccountSwitcher as UIAccountSwitcher } from '@deriv-com/ui';
 import AccountSwitcherFooter from './account-swticher-footer';
 import { TDemoAccounts } from './types';
 import { AccountSwitcherDivider, convertCommaValue } from './utils';
-import { isNewLoggedIn, sendViaNewSystemWithPromise } from '@/auth/NewDerivAuth';
+import { isNewLoggedIn, getNewAuthHeaders } from '@/auth/NewDerivAuth';
+
+const REST_BASE = 'https://api.derivws.com/trading/v1';
 
 const DemoAccounts = ({
     tabs_labels,
@@ -21,23 +23,35 @@ const DemoAccounts = ({
             console.log('🔄 [RESET BALANCE] Resetting demo balance for:', loginId);
 
             if (isNewLoggedIn()) {
-                if (!window._newSystemWS || window._newSystemWS.readyState !== WebSocket.OPEN) {
-                    console.warn('⚠️ [RESET BALANCE] OTP WS not connected');
-                    return;
+                // topup_virtual is not supported by the OTP WS (returned "Unrecognised request").
+                // Try the REST API with multiple endpoint patterns.
+                const headers = { ...getNewAuthHeaders(), 'Content-Type': 'application/json' };
+
+                const endpoints = [
+                    `${REST_BASE}/options/accounts/${loginId}/topup-virtual`,
+                    `${REST_BASE}/options/accounts/${loginId}/topup`,
+                    `${REST_BASE.replace('/trading/', '/account/')}accounts/${loginId}/topup-virtual`,
+                    `${REST_BASE}/account/topup-virtual`,
+                    `${REST_BASE}/options/demo/topup`,
+                ];
+
+                for (const url of endpoints) {
+                    const body = url.includes('/account/topup-virtual') || url.includes('/options/demo/topup')
+                        ? JSON.stringify({ loginid: loginId })
+                        : undefined;
+                    try {
+                        const res = await fetch(url, { method: 'POST', headers, body });
+                        const text = await res.text();
+                        console.log(`[RESET BALANCE] ${url} => ${res.status}: ${text.slice(0, 200)}`);
+                        if (res.ok) {
+                            console.log('✅ [RESET BALANCE] Success via:', url);
+                            return;
+                        }
+                    } catch (e) {
+                        console.log(`[RESET BALANCE] ${url} => network error:`, e);
+                    }
                 }
-                // Send via the OTP WS which IS authenticated (unlike the legacy WS).
-                // Add a 10s timeout in case the OTP WS doesn't support topup_virtual.
-                const result = await Promise.race([
-                    sendViaNewSystemWithPromise({ topup_virtual: 1, loginid: loginId }),
-                    new Promise<never>((_, reject) =>
-                        setTimeout(() => reject(new Error('timeout')), 10000)
-                    ),
-                ]);
-                if ((result as any)?.error) {
-                    console.error('❌ [RESET BALANCE] Error:', (result as any).error);
-                    return;
-                }
-                console.log('✅ [RESET BALANCE] Success via OTP WS');
+                console.error('❌ [RESET BALANCE] All REST API endpoints failed');
                 return;
             }
 
