@@ -383,7 +383,7 @@ const NewDTrader: React.FC = () => {
 
   if (!isPhone) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', color: '#ddd', fontSize: '13px', background: '#111' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', color: '#ddd', fontSize: '13px', background: '#111' }}>
         {/* TOP NAV BAR */}
         <div style={{ display: 'flex', alignItems: 'center', padding: '6px 16px', background: '#1a1a1a', borderBottom: '1px solid #333', gap: '4px', overflowX: 'auto' }}>
           {navTradeTypes.map(t => (
