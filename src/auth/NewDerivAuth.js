@@ -677,9 +677,24 @@ export async function createNewWebSocket() {
     _pendingRequests.forEach((entry) => entry.reject(err))
     _pendingRequests.clear()
 
-    if (isNewLoggedIn()) {
-      setTimeout(createNewWebSocket, 3000)
-    }
+    if (!isNewLoggedIn()) return;
+
+    const reconnect = (delay = 3000) => {
+      setTimeout(async () => {
+        try {
+          const ws = await createNewWebSocket();
+          if (!ws && isNewLoggedIn()) {
+            // REST call failed (accounts/OTP fetch) — retry with backoff
+            reconnect(Math.min(delay * 1.5, 30000));
+          }
+        } catch (e) {
+          if (isNewLoggedIn()) {
+            reconnect(Math.min(delay * 1.5, 30000));
+          }
+        }
+      }, delay);
+    };
+    reconnect(3000);
   }
   
   return ws

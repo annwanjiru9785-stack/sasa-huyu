@@ -5,6 +5,7 @@ import { getAppId } from '@/components/shared/utils/config/config';
 import { getMainAppActiveToken, getMainAppActiveLoginId } from '@/external/bot-skeleton/services/api/appId';
 import { redirectToLogin } from '@/components/shared/utils/login/login';
 import { LocalStore } from '@/components/shared/utils/storage/storage';
+import { isNewLoggedIn } from '@/auth/NewDerivAuth';
 
 const getEffectiveToken = getMainAppActiveToken;
 const getEffectiveLoginId = getMainAppActiveLoginId;
@@ -12,6 +13,15 @@ const getEffectiveLoginId = getMainAppActiveLoginId;
 const Dtrader = observer(() => {
     const [iframeSrc, setIframeSrc] = useState<string>('');
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+    if (isNewLoggedIn()) {
+        return (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
+                <p>DTrader is not available for new accounts.</p>
+                <p style={{ fontSize: '13px', marginTop: '8px' }}>Use Bot Builder or Over/Under to trade.</p>
+            </div>
+        );
+    }
 
     const handleLogin = () => {
         const language = LocalStore.get('i18n_language') || 'EN';
