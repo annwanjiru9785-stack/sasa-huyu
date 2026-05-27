@@ -18,7 +18,9 @@ const TRADE_TYPES = [
 
 function getPipSize(symbol: string): number { return pip_sizes[symbol] || 2; }
 function extractDigit(quote: number, pip_size: number): number {
-  return parseInt(quote.toFixed(pip_size).slice(-1), 10);
+  const q = Number(quote);
+  if (isNaN(q)) return 0;
+  return parseInt(q.toFixed(pip_size).slice(-1), 10);
 }
 
 interface ContractInfo {
@@ -293,15 +295,15 @@ const NewDTrader: React.FC = () => {
             const profit = Number(poc.profit ?? 0);
             const isWin = profit >= 0;
             const ac = activeContractsRef.current.find(c => c.id === cid);
-            const entryTick = poc.entry_tick ?? ac?.entry_tick ?? 0;
-            const entryDigit = entryTick ? extractDigit(entryTick, pipSizeRef.current) : 0;
+            const entryTickRaw = poc.entry_tick ?? ac?.entry_tick;
+            const entryDigit = entryTickRaw ? extractDigit(entryTickRaw, pipSizeRef.current) : (ac?.entry_digit ?? 0);
             setExitHighlight({ digit: exitDigit, win: isWin });
             setTimeout(() => setExitHighlight(null), 3000);
             setTradeResult({ isWin, profit, contract_type: poc.contract_type || ac?.contract_type || '', entry_digit: entryDigit, exit_digit: exitDigit });
             setActiveContracts(prev => { activeContractsRef.current = prev.filter(c => c.id !== cid); return activeContractsRef.current; });
             setContractHistory(prev => {
               if (prev.find(c => c.id === cid)) return prev;
-              return [...prev, { id: cid, contract_type: poc.contract_type || ac?.contract_type || '', stake: Number(poc.buy_price ?? ac?.stake ?? 0), symbol: poc.symbol || ac?.symbol || '', entry_tick: entryTick, exit_tick: exitTick, profit, is_sold: true, entry_digit: entryDigit, exit_digit: exitDigit, is_win: isWin }];
+              return [...prev, { id: cid, contract_type: poc.contract_type || ac?.contract_type || '', stake: Number(poc.buy_price ?? ac?.stake ?? 0), symbol: poc.symbol || ac?.symbol || '', entry_tick: entryTickRaw || 0, exit_tick: exitTick, profit, is_sold: true, entry_digit: entryDigit, exit_digit: exitDigit, is_win: isWin }];
             });
             setSessionStats(prev => ({ wins: prev.wins + (isWin ? 1 : 0), losses: prev.losses + (isWin ? 0 : 1), profit: prev.profit + profit }));
             sendViaNewSystem({ balance: 1 });
