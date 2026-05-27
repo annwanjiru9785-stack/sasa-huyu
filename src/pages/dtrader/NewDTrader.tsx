@@ -43,8 +43,8 @@ const NewDTrader: React.FC = () => {
   const stakeRef = useRef(5);
   const symbolRef = useRef('R_100');
   const barrierRef = useRef('5');
-  const durationRef = useRef(5);
-  const durationUnitRef = useRef<'t' | 'm'>('m');
+  const durationRef = useRef(1);
+  const durationUnitRef = useRef<'t' | 'm'>('t');
   const tradeTypeRef = useRef('rise_fall');
   const pipSizeRef = useRef(2);
 
@@ -52,8 +52,8 @@ const NewDTrader: React.FC = () => {
   const [tradeType, setTradeType] = useState('rise_fall');
   const [stake, setStake] = useState(5);
   const [barrier, setBarrier] = useState('5');
-  const [duration, setDuration] = useState(5);
-  const [durationUnit, setDurationUnit] = useState<'t' | 'm'>('m');
+  const [duration, setDuration] = useState(1);
+  const [durationUnit, setDurationUnit] = useState<'t' | 'm'>('t');
   const [allowEquals, setAllowEquals] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [currentDigit, setCurrentDigit] = useState<number | null>(null);
