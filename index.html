@@ -109,6 +109,97 @@
         <div id="modal_root" class="modal-root"></div>
         <div id="popup_root" class="popup-root"></div>
         <div id="root"></div>
+
+        <!-- ── Caxynexus-Ai Splash Screen ─────────────────────────────────── -->
+        <div id="cx-splash">
+            <style>
+                #cx-splash {
+                    position: fixed;
+                    inset: 0;
+                    background: #0f1117;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 99999;
+                    transition: opacity 0.5s ease, visibility 0.5s ease;
+                }
+                #cx-splash.cx-splash--hidden {
+                    opacity: 0;
+                    visibility: hidden;
+                    pointer-events: none;
+                }
+                #cx-splash__logo {
+                    width: 96px;
+                    height: 96px;
+                    border-radius: 18px;
+                    object-fit: cover;
+                    margin-bottom: 22px;
+                    box-shadow: 0 0 32px rgba(249,115,22,0.35);
+                }
+                #cx-splash__name {
+                    font-family: Arial, sans-serif;
+                    font-size: 26px;
+                    font-weight: 700;
+                    color: #f97316;
+                    letter-spacing: 0.08em;
+                    margin-bottom: 6px;
+                }
+                #cx-splash__sub {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    color: #555;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    margin-bottom: 36px;
+                }
+                #cx-splash__bar {
+                    width: 160px;
+                    height: 3px;
+                    background: #1a1d24;
+                    border-radius: 99px;
+                    overflow: hidden;
+                }
+                #cx-splash__fill {
+                    height: 100%;
+                    width: 0%;
+                    background: linear-gradient(90deg, #f97316, #ef4444);
+                    border-radius: 99px;
+                    animation: cx-progress 2.5s ease forwards;
+                }
+                @keyframes cx-progress {
+                    0%   { width: 0%; }
+                    50%  { width: 65%; }
+                    100% { width: 100%; }
+                }
+            </style>
+            <img id="cx-splash__logo" src="/caxynexus-ai-logo.jpg" alt="Caxynexus-Ai" />
+            <div id="cx-splash__name">CAXYNEXUS-AI</div>
+            <div id="cx-splash__sub">Professional Trading Bot Builder</div>
+            <div id="cx-splash__bar"><div id="cx-splash__fill"></div></div>
+            <script>
+                (function () {
+                    var splash = document.getElementById('cx-splash');
+                    var root   = document.getElementById('root');
+                    var obs = new MutationObserver(function () {
+                        if (root.children.length > 0) {
+                            obs.disconnect();
+                            setTimeout(function () {
+                                splash.classList.add('cx-splash--hidden');
+                                setTimeout(function () { if (splash.parentNode) splash.remove(); }, 550);
+                            }, 300);
+                        }
+                    });
+                    obs.observe(root, { childList: true });
+                    setTimeout(function () {
+                        splash.classList.add('cx-splash--hidden');
+                        setTimeout(function () { if (splash.parentNode) splash.remove(); }, 550);
+                    }, 9000);
+                })();
+            </script>
+        </div>
+        <!-- ── End Splash Screen ──────────────────────────────────────────── -->
+
         <!-- LiveChat script -->
         <script type="text/javascript" defer>
             window.__lc = window.__lc || {};
