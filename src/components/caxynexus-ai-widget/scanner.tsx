@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { ALL_SYMBOLS, SYMBOL_LABELS, PIP_SIZES, openMakotiWS, MakotiWS } from './makoti-ws';
+import { ALL_SYMBOLS, SYMBOL_LABELS, PIP_SIZES, openCaxynexusAiWS, CaxynexusAiWS } from './caxynexus-ai-ws';
 
 type BotId = 'pvty_kill' | 'rf_v4';
 
@@ -43,7 +43,7 @@ export const Scanner: React.FC = () => {
     const [progress, setProgress]   = useState('');
     const [results, setResults]     = useState<ScanResult[]>([]);
     const [bestSymbols, setBestSymbols] = useState<string[]>([]);
-    const wsRef        = useRef<MakotiWS | null>(null);
+    const wsRef        = useRef<CaxynexusAiWS | null>(null);
     const pendingRef   = useRef<Set<string>>(new Set());
     const collectedRef = useRef<Map<string, any>>(new Map());
     const botRef       = useRef<BotId>('pvty_kill');
@@ -187,7 +187,7 @@ export const Scanner: React.FC = () => {
         };
 
         /* ── Open WS and send requests on ready ─────────────────────────── */
-        const mws = openMakotiWS(
+        const mws = openCaxynexusAiWS(
             handleMessage,
             () => {
                 setProgress('Fetching 1 000 ticks from all 10 volatilities…');

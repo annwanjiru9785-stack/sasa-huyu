@@ -1,6 +1,6 @@
 
 // ═══════════════════════════════════════════════════════════
-//  Makoti AI - Advanced Over/Under Analysis Engine v2.7
+//  Caxynexus-Ai - Advanced Over/Under Analysis Engine v2.7
 //  (Edge Analysis Engine)
 // ═══════════════════════════════════════════════════════════
 

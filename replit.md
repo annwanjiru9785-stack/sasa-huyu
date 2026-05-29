@@ -1,4 +1,4 @@
-# MakotiTraders — Professional Deriv trading bot builder and copy trading dashboard
+# Caxynexus-Ai — Professional Deriv trading bot builder and copy trading dashboard
 
 ## Run & Operate
 - **Dev server**: `npm run start` (runs on port 5000)

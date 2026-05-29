@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ALL_SYMBOLS, SYMBOL_LABELS, PIP_SIZES, openMakotiWS, MakotiWS, analyzeSignal } from './makoti-ws';
+import { ALL_SYMBOLS, SYMBOL_LABELS, PIP_SIZES, openCaxynexusAiWS, CaxynexusAiWS, analyzeSignal } from './caxynexus-ai-ws';
 
 /* ── Types ─────────────────────────────────────────────────────────────────── */
 interface SymbolState {
@@ -59,7 +59,7 @@ export const MarketKiller: React.FC = () => {
     >({});
 
     /* ── Refs (survive re-renders, no lag) ─────────────────────────────── */
-    const wsRef            = useRef<MakotiWS | null>(null);
+    const wsRef            = useRef<CaxynexusAiWS | null>(null);
     const symbolDataRef    = useRef<Record<string, SymbolState>>({});
     const pnlRef           = useRef(0);
     const runningRef       = useRef(false);
@@ -340,7 +340,7 @@ export const MarketKiller: React.FC = () => {
         };
 
         /* ── Open WS ─────────────────────────────────────────────────────── */
-        const mws = openMakotiWS(
+        const mws = openCaxynexusAiWS(
             handleMsg,
             () => {
                 addLog('Connected ✓  Subscribing to all 10 volatilities…', 'info');

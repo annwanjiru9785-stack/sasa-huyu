@@ -74,16 +74,16 @@ const StandaloneLoginScreen: React.FC = () => {
 
     return (
         <div className={`login-screen${visible ? ' login-screen--visible' : ''}`}>
-            <div className='login-screen__bg' style={{ backgroundImage: "url('/makoti-logo.jpg')" }} />
+            <div className='login-screen__bg' style={{ backgroundImage: "url('/caxynexus-ai-logo.jpg')" }} />
             <div className='login-screen__overlay' />
 
             <div className='login-screen__content'>
                 <div className='login-screen__logo-wrap'>
-                    <img src='/makoti-logo.jpg' alt='Makoti Traders' className='login-screen__logo' />
+                    <img src='/caxynexus-ai-logo.jpg' alt='Caxynexus-Ai' className='login-screen__logo' />
                 </div>
 
                 <div className='login-screen__brand'>
-                    <h1 className='login-screen__title'>MAKOTI TRADERS</h1>
+                    <h1 className='login-screen__title'>CAXYNEXUS-AI</h1>
                     <p className='login-screen__sub'>POWERED BY DERIV</p>
                 </div>
 

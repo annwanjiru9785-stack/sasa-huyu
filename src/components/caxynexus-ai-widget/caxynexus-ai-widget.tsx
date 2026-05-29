@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Scanner } from './scanner';
 import { MarketKiller } from './market-killer';
-import './makoti-widget.scss';
+import './caxynexus-ai-widget.scss';
 
 type Tab = 'scanner' | 'market_killer';
 const PAD = 8;
 
-export const MakotiWidget: React.FC = () => {
+export const CaxynexusAiWidget: React.FC = () => {
     const [open, setOpen]         = useState(() => localStorage.getItem('mw_open') === 'true');
     const [tab, setTab]           = useState<Tab>(() => (localStorage.getItem('mw_tab') as Tab) || 'scanner');
     const [minimized, setMinimized] = useState(false);
@@ -157,11 +157,11 @@ export const MakotiWidget: React.FC = () => {
                 style={{ position: 'fixed', left: btnPosRef.current.x, top: btnPosRef.current.y }}
                 onPointerDown={onBtnPointerDown}
                 onClick={onBtnClick}
-                title='MAKOTI — Scanner & Market Killer'
+                title='CAXYNEXUS-AI — Scanner & Market Killer'
             >
                 <span className='mw-fab__pulse' />
                 <span className='mw-fab__icon'>⚔</span>
-                <span className='mw-fab__label'>MAKOTI</span>
+                <span className='mw-fab__label'>CAXYNEXUS-AI</span>
             </button>
 
             {/* ── Floating window (bottom sheet on mobile, floating on desktop) ── */}
@@ -183,7 +183,7 @@ export const MakotiWidget: React.FC = () => {
                         <div className='mw-win-header'>
                             <div className='mw-win-title'>
                                 <span className='mw-win-logo'>⚔</span>
-                                <span>MAKOTI</span>
+                                <span>CAXYNEXUS-AI</span>
                             </div>
                             <div className='mw-win-actions'>
                                 <button
@@ -232,4 +232,4 @@ export const MakotiWidget: React.FC = () => {
     );
 };
 
-export default MakotiWidget;
+export default CaxynexusAiWidget;

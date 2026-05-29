@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { motion } from 'framer-motion';
 import { Zap, BarChart2, Cpu, RefreshCw, TrendingUp, Play, Square } from 'lucide-react';
-import MakotiMagicStore from '@/stores/makoti-magic-store';
-import './MakotiMagic.scss';
+import CaxynexusAiMagicStore from '@/stores/caxynexus-ai-magic-store';
+import './CaxynexusAiMagic.scss';
 
-const MakotiMagic = observer(() => {
+const CaxynexusAiMagic = observer(() => {
     const {
         connectWebSocket,
         setSelectedSymbol,
@@ -20,11 +20,11 @@ const MakotiMagic = observer(() => {
         tick_history,
         scan_attempts,
         is_auto_scanning,
-    } = MakotiMagicStore;
+    } = CaxynexusAiMagicStore;
 
     useEffect(() => {
         connectWebSocket();
-        return () => MakotiMagicStore.dispose();
+        return () => CaxynexusAiMagicStore.dispose();
     }, []);
 
     const volatilityOptions = [
@@ -51,7 +51,7 @@ const MakotiMagic = observer(() => {
     const hasPrediction = prediction && prediction.predictedDigit !== null && prediction.predictedDigit !== undefined;
 
     return (
-        <div className='makoti-magic'>
+        <div className='caxynexus-ai-magic'>
             <div className='mm-matrix-bg'>
                 {Array.from({ length: 100 }).map((_, i) => (
                     <span key={i} className='mm-matrix-char' style={{ animationDelay: `${Math.random() * 5}s` }}>
@@ -64,7 +64,7 @@ const MakotiMagic = observer(() => {
                 <div className='mm-header__left'>
                     <div className='mm-header__icon'><Zap size={17} /></div>
                     <div>
-                        <div className='mm-header__title'>Makoti Magic</div>
+                        <div className='mm-header__title'>Caxynexus-Ai Magic</div>
                         <div className='mm-header__sub'>Prediction Engine</div>
                     </div>
                 </div>
@@ -145,13 +145,13 @@ const MakotiMagic = observer(() => {
                         </div>
                     )}
 
-                    <div className='mm-cta-wrap' style={{ paddingBottom: '2rem' }}>
+                    <div className='mm-cta-wrap'>
                         {!is_auto_scanning ? (
                             <motion.button className='mm-cta' onClick={runScan} disabled={is_loading}>
                                 <span className='mm-cta__ico'>
                                     <Zap size={17} />
                                 </span>
-                                <span className='mm-cta__txt'>SCAN (Min 40% Confidence)</span>
+                                <span className='mm-cta__txt'>SCAN (Min 31% Confidence)</span>
                             </motion.button>
                         ) : (
                             <motion.button className='mm-cta mm-cta--stop' onClick={stopScan}>
@@ -164,7 +164,7 @@ const MakotiMagic = observer(() => {
                         
                         {showLoadButton && (
                             <motion.button 
-                                className='mm-load-btn'
+                                className='mm-load-btn' 
                                 onClick={loadBot}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -181,4 +181,4 @@ const MakotiMagic = observer(() => {
     );
 });
 
-export default MakotiMagic;
+export default CaxynexusAiMagic;

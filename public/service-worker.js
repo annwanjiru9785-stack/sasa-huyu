@@ -1,7 +1,7 @@
-// Service worker for MakotiTraders PWA.
+// Service worker for Caxynexus-Ai PWA.
 // CACHE_VERSION must be bumped on every deployment to bust stale caches.
 const CACHE_VERSION = 'v2';
-const CACHE_NAME = `makoti-pwa-cache-${CACHE_VERSION}`;
+const CACHE_NAME = `caxynexus-ai-pwa-cache-${CACHE_VERSION}`;
 
 // Static assets that are safe to cache long-term (they have content-hashed filenames).
 const STATIC_ASSET_REGEX = /\.(js|css|woff2?|ttf|eot|png|jpg|jpeg|gif|svg|ico|webp)(\?.*)?$/i;
@@ -10,7 +10,7 @@ const STATIC_ASSET_REGEX = /\.(js|css|woff2?|ttf|eot|png|jpg|jpeg|gif|svg|ico|we
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(['/makoti-logo.jpg', '/manifest.json']))
+            .then(cache => cache.addAll(['/caxynexus-ai-logo.jpg', '/manifest.json']))
             .then(() => self.skipWaiting())
     );
 });

@@ -34,17 +34,17 @@ export function getToken(): string | null {
 
 // ─── WebSocket factory ────────────────────────────────────────────────────────
 
-export type MakotiWS = {
+export type CaxynexusAiWS = {
     send: (msg: object) => void;
     close: () => void;
     isOpen: () => boolean;
 };
 
-export function openMakotiWS(
+export function openCaxynexusAiWS(
     onMessage: (data: any) => void,
     onReady: () => void,
     onClose: () => void,
-): MakotiWS {
+): CaxynexusAiWS {
     const appId     = getAppId();
     const serverUrl = getSocketURL();
     const ws        = new WebSocket(`wss://${serverUrl}/websockets/v3?app_id=${appId}`);

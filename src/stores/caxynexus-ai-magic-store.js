@@ -9,7 +9,7 @@ const MAX_TICKS = 200;
 const MIN_CONFIDENCE = 0.31;
 const MAX_SCAN_ATTEMPTS = 50;
 
-class MakotiMagicStore {
+class CaxynexusAiMagicStore {
     is_loading = false;
     is_running = false;
     connection_status = STATUS_OFFLINE;
@@ -289,4 +289,4 @@ class MakotiMagicStore {
     };
 }
 
-export default new MakotiMagicStore();
+export default new CaxynexusAiMagicStore();

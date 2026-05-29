@@ -28,8 +28,8 @@ import ChartModal from '../chart/chart-modal';
 import Dashboard from '../dashboard';
 import RunStrategy from '../dashboard/run-strategy';
 import OverUnder from '../OverUnder'; 
-import MakotiMagic from '../MakotiMagic';
-import MakotiMagicStore from '@/stores/makoti-magic-store';
+import CaxynexusAiMagic from '../CaxynexusAiMagic';
+import CaxynexusAiMagicStore from '@/stores/caxynexus-ai-magic-store';
 import './main.scss';
 
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
@@ -40,7 +40,7 @@ const Strategies = lazy(() => import('../free-bots/strategies'));
 const Dtrader = lazy(() => import('../dtrader'));
 const DerivNewApiPage = lazy(() => import('../deriv-new-api/DerivNewApiPage'));
 import TradingBots from '../free-bots/trading-bots';
-import { MakotiWidget } from '@/components/makoti-widget/makoti-widget';
+import { CaxynexusAiWidget } from '@/components/caxynexus-ai-widget/caxynexus-ai-widget';
 import BlocklyIOSPrompt from '@/components/blockly-ios-prompt/blockly-ios-prompt';
 
 const AppWrapper = observer(() => {
@@ -67,7 +67,7 @@ const AppWrapper = observer(() => {
         'chart',         // 2 - Charts
         'trading_bots',  // 3 - Trading Bots
         'over_under',    // 4 - Over/Under
-        'makoti_magic',  // 5 - Makoti Magic
+        'caxynexus_ai_magic',  // 5 - Caxynexus-Ai Magic
         'analysis_tool', // 6 - Analysis Tool
         'strategies',    // 7 - Strategies
         'copy_trading',  // 8 - Copy Trading
@@ -81,9 +81,9 @@ const AppWrapper = observer(() => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        MakotiMagicStore.setBotLoadCallback((xmlContent: string) => {
+        CaxynexusAiMagicStore.setBotLoadCallback((xmlContent: string) => {
             // Just load the bot without navigating
-            setPendingFreeBot({ name: 'Makoti Magic Bot', xml: xmlContent });
+            setPendingFreeBot({ name: 'Caxynexus-Ai Magic Bot', xml: xmlContent });
         });
     }, [setPendingFreeBot]);
 
@@ -142,11 +142,11 @@ const AppWrapper = observer(() => {
                             <OverUnder />
                         </div>
 
-                        {/* MAKOTI MAGIC TAB START */}
-                        <div label={<><LabelPairedPlayCaptionBoldIcon height='24px' width='24px' /><Localize i18n_default_text='Makoti Magic' /></>} id='makoti_magic'>
-                            <MakotiMagic />
+                        {/* CAXYNEXUS-AI MAGIC TAB START */}
+                        <div label={<><LabelPairedPlayCaptionBoldIcon height='24px' width='24px' /><Localize i18n_default_text='Caxynexus-Ai Magic' /></>} id='caxynexus_ai_magic'>
+                            <CaxynexusAiMagic />
                         </div>
-                        {/* MAKOTI MAGIC TAB END */}
+                        {/* CAXYNEXUS-AI MAGIC TAB END */}
 
                         <div label={<><LegacyIndicatorsIcon height='16px' width='16px' /><Localize i18n_default_text='Analysis Tool' /></>} id='id-analysis-tool'>
                             <Suspense fallback={<ChunkLoader message={localize('Please wait, loading Analysis Tool...')} />}><AnalysisTools /></Suspense>
@@ -170,7 +170,7 @@ const AppWrapper = observer(() => {
                 </div>
             </div>
             <DesktopWrapper>
-                {hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && (
+                {hash[active_tab] !== 'strategies' && hash[active_tab] !== 'caxynexus_ai_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && (
                     <div className='main__run-strategy-wrapper'>
                         {hash[active_tab] !== 'over_under' && <RunStrategy />}
                         <RunPanel />
@@ -178,9 +178,9 @@ const AppWrapper = observer(() => {
                 )}
                 <ChartModal /><TradingViewModal />
             </DesktopWrapper>
-            <MobileWrapper>{!is_open && hash[active_tab] !== 'strategies' && hash[active_tab] !== 'makoti_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && <RunPanel />}</MobileWrapper>
+            <MobileWrapper>{!is_open && hash[active_tab] !== 'strategies' && hash[active_tab] !== 'caxynexus_ai_magic' && hash[active_tab] !== 'trading_bots' && hash[active_tab] !== 'dtrader' && hash[active_tab] !== 'copy_trading' && hash[active_tab] !== 'tradingview' && hash[active_tab] !== 'deriv_api' && <RunPanel />}</MobileWrapper>
             <SpeedBotFloatingStop />
-            {hash[active_tab] === 'bot_builder' && <MakotiWidget />}
+            {hash[active_tab] === 'bot_builder' && <CaxynexusAiWidget />}
             <BlocklyIOSPrompt />
         </React.Fragment>
     );

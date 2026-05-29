@@ -356,12 +356,12 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
                 <AppLogo onMenuClick={handleMenuClick} />
                 <div className='powered-by-deriv-header' ref={whatsappDropdownRef}>
                     <img
-                        src='/makoti-logo.jpg'
-                        alt='MAKOTI TRADERS logo'
+                        src='/caxynexus-ai-logo.jpg'
+                        alt='CAXYNEXUS-AI logo'
                         className='powered-by-deriv-header__logo'
                     />
                     <div className='powered-by-deriv-header__text'>
-                        <span className='deriv-word'>MAKOTI TRADERS</span>
+                        <span className='deriv-word'>CAXYNEXUS-AI</span>
                         <span className='powered-by-deriv-header__label'>POWERED BY DERIV</span>
                     </div>
                 </div>
