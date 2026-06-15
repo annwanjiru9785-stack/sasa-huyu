@@ -1,0 +1,2 @@
+- [Vite migration from rsbuild](vite-migration.md) — rspack/rolldown native .node binaries crash (Bus error) on NixOS; Vite 5 with esbuild is the working alternative.
+- [npm ENOTEMPTY btrfs fix](npm-btrfs.md) — npm installs corrupt node_modules on btrfs; never run bare npm install, restore critical packages from /tmp tarballs instead.

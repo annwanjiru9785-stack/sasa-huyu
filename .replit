@@ -31,7 +31,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node --experimental-vm-modules node_modules/@rsbuild/core/bin/rsbuild.js dev"
+args = "node node_modules/vite/bin/vite.js --config vite.config.ts"
 waitForPort = 5000
 
 [[workflows.workflow]]
