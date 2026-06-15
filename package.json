@@ -16,7 +16,7 @@
         "test:fix": "prettier --log-level silent --write . && eslint --fix \"./src/**/*.?(js|jsx|ts|tsx)\"",
         "test": "jest",
         "coverage": "jest --coverage",
-        "prepare": "husky install",
+        "prepare": "node -e \"try{require('husky').install()}catch(e){}\" || true",
         "build:analyze": "BUNDLE_ANALYZE=true rsbuild build",
         "server": "node server/index.js"
     },
