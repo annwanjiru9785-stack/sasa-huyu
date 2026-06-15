@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { generateOAuthURL } from '@/components/shared';
 import { startNewLogin, startNewSignup } from '@/auth/NewDerivAuth';
 import useTMB from '@/hooks/useTMB';
 import './LoginScreen.scss';
@@ -18,12 +17,7 @@ const LoginScreenInner = () => {
 
     const handleStandardLogin = async () => {
         try {
-            const tmbEnabled = await isTmbEnabled();
-            if (tmbEnabled) {
-                await onRenderTMBCheck(true, undefined, false);
-            } else {
-                window.location.href = generateOAuthURL(false, 'home');
-            }
+            await startNewLogin();
         } catch (error) {
             console.error(error);
         }

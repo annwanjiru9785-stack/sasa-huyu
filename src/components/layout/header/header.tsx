@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { observer } from 'mobx-react-lite';
-import { generateOAuthURL, standalone_routes } from '@/components/shared';
+import { standalone_routes } from '@/components/shared';
 import Button from '@/components/shared_ui/button';
 import useActiveAccount from '@/hooks/api/account/useActiveAccount';
 import { useOauth2 } from '@/hooks/auth/useOauth2';
@@ -274,12 +274,7 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
                         className='auth-login-button'
                         onClick={async () => {
                             try {
-                                const tmbEnabled = await isTmbEnabled();
-                                if (tmbEnabled) {
-                                    await onRenderTMBCheck(true, undefined, false);
-                                } else {
-                                    window.location.href = generateOAuthURL(false, 'home');
-                                }
+                                await startNewLogin();
                             } catch (error) {
                                 console.error(error);
                             }

@@ -1,7 +1,7 @@
 import { ComponentProps, ReactNode, useMemo } from 'react';
 import Livechat from '@/components/chat/Livechat';
 import useIsLiveChatWidgetAvailable from '@/components/chat/useIsLiveChatWidgetAvailable';
-import { generateOAuthURL, standalone_routes } from '@/components/shared';
+import { standalone_routes } from '@/components/shared';
 import { useOauth2 } from '@/hooks/auth/useOauth2';
 import { useFirebaseCountriesConfig } from '@/hooks/firebase/useFirebaseCountriesConfig';
 import useRemoteConfig from '@/hooks/growthbook/useRemoteConfig';
@@ -110,11 +110,11 @@ const useMobileMenuConfig = (client?: RootStore['client']) => {
                     label: localize('Log in'),
                     LeftComponent: LegacyProfileSmIcon,
                     onClick: async () => {
-                        const tmbEnabled = await isTmbEnabled();
-                        if (tmbEnabled) {
-                            await onRenderTMBCheck(true, undefined, false);
-                        } else {
-                            window.location.href = generateOAuthURL(false, 'home');
+                        try {
+                            const { startNewLogin } = await import('@/auth/NewDerivAuth');
+                            await startNewLogin();
+                        } catch (error) {
+                            console.error('[Mobile Login]', error);
                         }
                     },
                 },

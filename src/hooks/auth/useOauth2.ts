@@ -119,8 +119,8 @@ export const useOauth2 = ({
     };
     const retriggerOAuth2Login = async () => {
         try {
-            const { generateOAuthURL } = await import('@/components/shared');
-            window.location.replace(generateOAuthURL());
+            const { startNewLogin } = await import('@/auth/NewDerivAuth');
+            await startNewLogin();
         } catch (error) {
             handleOidcAuthFailure(error);
         }
