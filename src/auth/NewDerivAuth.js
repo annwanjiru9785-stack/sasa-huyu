@@ -142,7 +142,7 @@ export function subscribeNewSystemTopics() {
 }
 
 const CONFIG = {
-  clientId:    "33yhUhHxbgeMydLnQehYK",
+  clientId:    "33yHg1YwPeYEz0darZjgL",
   legacyAppId: "111670",
   get redirectUri() { return window.location.origin + "/callback"; },
   authUrl:     "https://auth.deriv.com/oauth2/auth",
