@@ -1,16 +1,16 @@
 {
-    "short_name": "CAXYNEXUS-AI",
-    "name": "CAXYNEXUS-AI - Professional Trading Bot Builder",
+    "short_name": "FREEZYTRADINGHUB",
+    "name": "FreezyTradingHub - Professional Trading Bot Builder",
     "description": "Create profitable trading bots without coding. Professional Deriv trading bot builder with copy trading, free bots, and advanced strategies.",
     "icons": [
         {
-            "src": "/favicon.png",
+            "src": "/freezy-logo.png",
             "type": "image/png",
             "sizes": "192x192",
             "purpose": "any maskable"
         },
         {
-            "src": "/favicon.png",
+            "src": "/freezy-logo.png",
             "type": "image/png",
             "sizes": "512x512",
             "purpose": "any maskable"

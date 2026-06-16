@@ -86,7 +86,7 @@ on data-driven signals, traders can enhance their success rate while maintaining
 
 The key rule is to hit and run while increasing stake strategically to optimize returns.
 
-USE caxynexus-ai.vercel.app TO TRADE`;
+USE freezytradinghub.vercel.app TO TRADE`;
 
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);

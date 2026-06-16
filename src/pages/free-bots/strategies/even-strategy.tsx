@@ -8,7 +8,7 @@ interface EvenStrategyProps {
 
 const EvenStrategy: React.FC<EvenStrategyProps> = ({ onBack }) => {
     const handleDownload = () => {
-        const content = `EVEN STRATEGY @caxynexus-ai.vercel.app
+        const content = `EVEN STRATEGY @freezytradinghub.vercel.app
 
 CONDITIONS TO CONSIDER:
 - BLUE & GREEN SHOULD BE ON EVEN DIGITS
@@ -24,7 +24,7 @@ NB: AFTER 3 TO 7 RUNS MAX ON PROFITS, STOP THE BOT TO CONFIRM THE MARKET CONDITI
 BARS COLOR KEY:
 RED: LEAST APPEARING DIGIT, YELLOW: 2ND LEAST APPEARING, GREEN: MOST APPEARING, BLUE: 2ND MOST APPEARING.
 
-USE caxynexus-ai.vercel.app TO TRADE`;
+USE freezytradinghub.vercel.app TO TRADE`;
 
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
