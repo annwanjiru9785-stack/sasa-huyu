@@ -64,7 +64,7 @@ const CaxynexusAiMagic = observer(() => {
                 <div className='mm-header__left'>
                     <div className='mm-header__icon'><Zap size={17} /></div>
                     <div>
-                        <div className='mm-header__title'>Caxynexus-Ai Magic</div>
+                        <div className='mm-header__title'>FreezyTradingHub Magic</div>
                         <div className='mm-header__sub'>Prediction Engine</div>
                     </div>
                 </div>

@@ -669,7 +669,7 @@ export const STRATEGIES = (): TStrategies => ({
     },
     CAXYNEXUS_AI_V3_RISE_FALL: {
         name: 'CAXYNEXUS_AIV3RISE_FALL',
-        label: localize('CAXYNEXUS-AI V3 RISE FALL'),
+        label: localize('FREEZYTRADINGHUB V3 RISE FALL'),
         rs_strategy_name: 'CAXYNEXUS_AIV3RISE_FALL',
         description: CAXYNEXUS_AI_V3_RISE_FALL(),
         fields: [

@@ -119,7 +119,7 @@ USE freezytradinghub.vercel.app TO TRADE`;
                                 </p>
                             </div>
 
-                            <p className='strategy-bots'>USE caxynexus-ai.vercel.app TO TRADE</p>
+                            <p className='strategy-bots'>USE FREEZYTRADINGHUB TO TRADE</p>
                         </div>
                     </section>
 
@@ -148,7 +148,7 @@ USE freezytradinghub.vercel.app TO TRADE`;
                                 </p>
                             </div>
 
-                            <p className='strategy-bots'>USE caxynexus-ai.vercel.app TO TRADE</p>
+                            <p className='strategy-bots'>USE FREEZYTRADINGHUB TO TRADE</p>
                         </div>
                     </section>
 

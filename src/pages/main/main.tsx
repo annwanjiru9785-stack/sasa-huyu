@@ -83,7 +83,7 @@ const AppWrapper = observer(() => {
     useEffect(() => {
         CaxynexusAiMagicStore.setBotLoadCallback((xmlContent: string) => {
             // Just load the bot without navigating
-            setPendingFreeBot({ name: 'Caxynexus-Ai Magic Bot', xml: xmlContent });
+            setPendingFreeBot({ name: 'FreezyTradingHub Magic Bot', xml: xmlContent });
         });
     }, [setPendingFreeBot]);
 

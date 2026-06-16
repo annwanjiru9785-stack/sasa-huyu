@@ -83,7 +83,7 @@ USE freezytradinghub.vercel.app TO TRADE`;
                     </button>
                 )}
                 <div className='strategy-viewer__document'>
-                    <h1 className='strategy-viewer__title'>EVEN STRATEGY @caxynexus-ai.vercel.app</h1>
+                    <h1 className='strategy-viewer__title'>EVEN STRATEGY @freezytradinghub</h1>
 
                     <section className='strategy-section'>
                         <h2 className='strategy-section__number'>CONDITIONS TO CONSIDER</h2>
@@ -144,7 +144,7 @@ USE freezytradinghub.vercel.app TO TRADE`;
                     </section>
 
                     <div className='strategy-footer'>
-                        <p className='strategy-footer__text'>USE caxynexus-ai.vercel.app TO TRADE</p>
+                        <p className='strategy-footer__text'>USE FREEZYTRADINGHUB TO TRADE</p>
                     </div>
                 </div>
             </div>

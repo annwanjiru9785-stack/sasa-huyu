@@ -311,7 +311,7 @@ USE freezytradinghub.vercel.app TO TRADE`;
                     </section>
 
                     <div className='strategy-footer'>
-                        <p className='strategy-footer__text'>USE caxynexus-ai.vercel.app TO TRADE</p>
+                        <p className='strategy-footer__text'>USE FREEZYTRADINGHUB TO TRADE</p>
                     </div>
                 </div>
             </div>

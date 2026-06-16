@@ -4,7 +4,7 @@ import { TDescriptionItem } from '../../pages/bot-builder/quick-strategy/types';
 export const CAXYNEXUS_AI_V3_RISE_FALL = (): TDescriptionItem[] => [
     {
         type: 'subtitle',
-        content: [localize('CAXYNEXUS-AI V3 RISE FALL Strategy')],
+        content: [localize('FREEZYTRADINGHUB V3 RISE FALL Strategy')],
         expanded: true,
         no_collapsible: false,
     },

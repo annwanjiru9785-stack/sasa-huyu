@@ -20,10 +20,10 @@ import SecurityProtection from '@/components/security/security-protection';
 import CopyTradingManager from '@/pages/copy-trading/copy-trading-manager';
 import { initReplicator } from '@/pages/copy-trading/replicator';
 import { isNewLoggedIn, createNewWebSocket } from '@/auth/NewDerivAuth';
+import AppRoot from './app-root';
 import './app-root.scss';
 
 const Layout = lazy(() => import('../components/layout'));
-const AppRoot = lazy(() => import('./app-root'));
 
 const { TRANSLATIONS_CDN_URL, R2_PROJECT_NAME, CROWDIN_BRANCH_NAME } = process.env;
 const i18nInstance = initializeI18n({

@@ -1,2 +1,3 @@
 - [Vite migration from rsbuild](vite-migration.md) — rspack/rolldown native .node binaries crash (Bus error) on NixOS; Vite 5 with esbuild is the working alternative.
 - [npm ENOTEMPTY btrfs fix](npm-btrfs.md) — npm installs corrupt node_modules on btrfs; never run bare npm install, restore critical packages from /tmp tarballs instead.
+- [rsbuild lazy-chunk HMR loop fix](rsbuild-hmr-loop.md) — React.lazy() chunks that rsbuild rebuilds continuously cause Suspense boundary to show its fallback forever; fix by making the component a static import.
